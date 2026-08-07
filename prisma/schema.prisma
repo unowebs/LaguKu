@@ -1,0 +1,114 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  songs         Song[]
+  versions      SongVersion[]
+  ownedRooms    Room[]        @relation("RoomOwner")
+  roomMembers   RoomMember[]
+  comments      Comment[]
+
+  @@map("users")
+}
+
+model Song {
+  id            String    @id @default(cuid())
+  title         String
+  composer      String    @default("")
+  key           String    @default("C")
+  timeSignature String    @default("4/4")
+  tempo         Int       @default(80)
+  genre         String?
+  content       Json      // LyricLine[] serialized
+  isPublic      Boolean   @default(false)
+  
+  ownerId       String
+  owner         User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  room          Room?
+  versions      SongVersion[]
+  comments      Comment[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("songs")
+}
+
+model SongVersion {
+  id        String   @id @default(cuid())
+  songId    String
+  song      Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  content   Json
+  label     String   @default("")
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("song_versions")
+}
+
+model Room {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  songId    String   @unique
+  song      Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  ownerId   String
+  owner     User     @relation("RoomOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  isLocked  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   RoomMember[]
+
+  @@map("rooms")
+}
+
+model RoomMember {
+  id         String     @id @default(cuid())
+  roomId     String
+  room       Room       @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @default(VIEWER)
+  joinedAt   DateTime   @default(now())
+
+  @@unique([roomId, userId])
+  @@map("room_members")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  songId    String
+  song      Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+  lineIndex Int
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("comments")
+}
+
+enum Permission {
+  OWNER
+  EDITOR
+  VIEWER
+}
