@@ -31,7 +31,7 @@ export default function LoginPage() {
         toast.error('Email atau password salah');
       } else {
         toast.success('Berhasil masuk!');
-        router.push('/dashboard');
+        window.location.href = '/dashboard';
       }
     } catch {
       toast.error('Terjadi kesalahan, coba lagi');
