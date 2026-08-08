@@ -110,6 +110,27 @@ body {
   position: relative;
 }
 
+/* =============================================
+   Mobile Note Insert Buttons
+   ============================================= */
+
+@media (max-width: 480px) {
+  .note-insert-btn {
+    width: 36px;
+    height: 40px;
+    border-radius: 5px;
+    gap: 0;
+  }
+
+  .note-insert-btn span:first-child {
+    font-size: 0.95rem;
+  }
+
+  .note-insert-btn span:last-child {
+    font-size: 7px;
+  }
+}
+
 /* Song body container */
 .song-body {
   /* No ruled lines — grid cells have their own consistent height */
@@ -557,6 +578,8 @@ body {
     width: 100%;
     min-height: auto;
     border-radius: 0;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
   }
 
   .sidebar {
@@ -567,10 +590,60 @@ body {
     z-index: 60;
     transform: translateX(100%);
     transition: transform 0.3s ease;
+    width: 280px;
   }
 
   .sidebar.open {
     transform: translateX(0);
+  }
+
+  /* Toolbar tab scrollable on mobile */
+  .toolbar-tabs-row {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-shrink: 0;
+  }
+  .toolbar-tabs-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Tab content scrollable on mobile */
+  .toolbar-tab-content {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .toolbar-tab-content::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide zoom controls on mobile to save space */
+  .toolbar-zoom-controls {
+    display: none;
+  }
+
+  /* Song body padding reduced on mobile */
+  .song-body {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    padding-bottom: 16px !important;
+  }
+
+  /* Remove auto margin on mobile paper */
+  .song-editor-wrapper .song-paper {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Top action bar compact on small phones */
+  .toolbar-top-bar {
+    padding-left: 8px;
+    padding-right: 8px;
+    gap: 4px;
   }
 }
 

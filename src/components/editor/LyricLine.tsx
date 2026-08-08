@@ -16,7 +16,7 @@
  * - Zoom mengubah cellWidth saja, tidak merusak struktur
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { LyricLine as LyricLineType, NoteAngka } from '@/types';
 import { NoteCell, BarLineCell, CELL_TOTAL_HEIGHT, LAYER_H } from './NoteCell';
 import { useEditorStore } from '@/store/editorStore';
@@ -70,7 +70,16 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
     collaborators,
   } = useEditorStore();
 
-  const cellWidth = Math.max(32, Math.round(40 * (zoom / 100)));
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
+  const baseCellWidth = isMobile ? 34 : 40;
+  const cellWidth = Math.max(isMobile ? 28 : 32, Math.round(baseCellWidth * (zoom / 100)));
   const measureSize = song ? getMeasureSizeInBeats(song.timeSignature) : 4;
   const isPlaybackLine = playbackLineIdx === lineIndex;
 

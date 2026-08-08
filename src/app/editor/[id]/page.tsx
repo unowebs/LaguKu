@@ -128,10 +128,12 @@ export default function EditorPage() {
       {/* Editor area */}
       <div className="flex flex-1 overflow-hidden">
         {/* Main editor */}
-        <SongEditor className="flex-1" />
+        <SongEditor className="flex-1 min-w-0" />
 
-        {/* Side panel */}
-        <SidePanel songId={songId} />
+        {/* Side panel — hidden on mobile */}
+        <div className="hidden md:block">
+          <SidePanel songId={songId} />
+        </div>
       </div>
     </div>
   );

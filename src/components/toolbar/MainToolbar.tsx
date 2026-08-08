@@ -731,7 +731,7 @@ export function MainToolbar() {
   return (
     <div className="toolbar-container border-b" style={{ borderColor: 'var(--music-border)', background: 'var(--music-surface)' }}>
       {/* Top action bar */}
-      <div className="flex items-center gap-2 px-4 py-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <div className="toolbar-top-bar flex items-center gap-2 px-4 py-2 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         {/* Back Button */}
         <Link href="/dashboard" className="toolbar-btn flex items-center gap-1.5 px-3 py-1 text-xs" style={{ background: 'rgba(255,255,255,0.03)' }} title="Kembali ke Dashboard">
           <ArrowLeft size={13} />
@@ -752,7 +752,7 @@ export function MainToolbar() {
         <div className="flex-1" />
 
         {/* Zoom */}
-        <div className="flex items-center gap-1">
+        <div className="toolbar-zoom-controls flex items-center gap-1">
           <button onClick={() => setZoom(zoom - 10)} className="toolbar-btn" title="Perkecil">
             <ZoomOut size={14} />
           </button>
@@ -881,12 +881,12 @@ export function MainToolbar() {
       </div>
 
       {/* Tab navigation */}
-      <div className="flex border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+      <div className="toolbar-tabs-row flex border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className="px-4 py-1.5 text-xs font-medium transition-all"
+          className="px-4 py-1.5 text-xs font-medium transition-all flex-shrink-0 whitespace-nowrap"
             style={{
               color: activeTab === tab.id ? 'var(--music-accent)' : 'var(--music-muted)',
               borderBottom: activeTab === tab.id ? '2px solid var(--music-accent)' : '2px solid transparent',
@@ -898,7 +898,7 @@ export function MainToolbar() {
       </div>
 
       {/* Tab content */}
-      <div className="px-4 py-2 min-h-[60px] flex items-center flex-wrap gap-1">
+      <div className="toolbar-tab-content px-4 py-2 min-h-[60px] flex items-center flex-wrap gap-1">
         {activeTab === 'notes' && (
           <NotesTab
             onInsert={insertNoteAtSelection}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useEditorStore } from '@/store/editorStore';
 import { LyricLineComponent } from './LyricLine';
 import { cn } from '@/lib/utils';
@@ -12,15 +12,23 @@ interface SongEditorProps {
 export function SongEditor({ className }: SongEditorProps) {
   const { song, zoom, addLine } = useEditorStore();
   const editorRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
   if (!song) return null;
 
-  const scale = zoom / 100;
+  const scale = isMobile ? 1 : zoom / 100;
 
   return (
     <div
       className={cn(
-        'song-editor-wrapper overflow-auto flex-1',
+        'song-editor-wrapper overflow-auto flex-1 min-w-0',
         className
       )}
     >
@@ -29,7 +37,7 @@ export function SongEditor({ className }: SongEditorProps) {
         ref={editorRef}
         id="song-editor"
         className="song-paper mx-auto my-6 shadow-2xl"
-        style={{
+        style={isMobile ? {} : {
           transform: `scale(${scale})`,
           transformOrigin: 'top center',
           marginBottom: `${(842 * scale) - 842 + 24}px`,
@@ -81,7 +89,7 @@ function SongHeader() {
   if (!song) return null;
 
   return (
-    <div className="song-header px-8 pt-6 pb-4">
+    <div className="song-header px-4 md:px-8 pt-4 md:pt-6 pb-3 md:pb-4">
       {/* Top info row */}
       <div className="flex justify-between items-start mb-2 text-xs text-music-muted">
         <span>
@@ -107,7 +115,7 @@ function SongHeader() {
       <h1
         contentEditable
         suppressContentEditableWarning
-        className="song-title text-center font-bold text-2xl uppercase tracking-wider
+        className="song-title text-center font-bold text-xl md:text-2xl uppercase tracking-wider
                    text-music-title outline-none focus:bg-white/5 rounded px-2 py-1
                    cursor-text"
         onBlur={(e) =>
