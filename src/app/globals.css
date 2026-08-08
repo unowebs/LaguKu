@@ -375,7 +375,6 @@ body {
   transition: all 0.2s ease;
   cursor: pointer;
   position: relative;
-  overflow: hidden;
 }
 
 .song-card::before {
@@ -385,6 +384,8 @@ body {
   left: 0;
   right: 0;
   height: 3px;
+  border-top-left-radius: 11px;
+  border-top-right-radius: 11px;
   background: linear-gradient(90deg, var(--music-accent), #8b5cf6);
   opacity: 0;
   transition: opacity 0.2s ease;

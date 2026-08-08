@@ -91,6 +91,45 @@ export default function DashboardPage() {
     }
   }
 
+  async function duplicateSong(song: SongSummary) {
+    try {
+      // Fetch details of original song
+      const res = await fetch(`/api/songs/${song.id}`);
+      const data = await res.json();
+      if (!data.success) throw new Error();
+
+      const orig = data.data;
+      const createRes = await fetch('/api/songs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: `${orig.title || 'Lagu'} (Salinan)`,
+          composer: orig.composer || '',
+          key: orig.key || 'C',
+          timeSignature: orig.timeSignature || '4/4',
+          tempo: orig.tempo || 80,
+          genre: orig.genre || '',
+          content: orig.content,
+        }),
+      });
+      const createData = await createRes.json();
+      if (createData.success) {
+        toast.success('Lagu berhasil diduplikat');
+        fetchSongs();
+      } else {
+        toast.error('Gagal menduplikat lagu');
+      }
+    } catch {
+      toast.error('Gagal menduplikat lagu');
+    }
+  }
+
+  function shareSong(songId: string) {
+    const url = `${window.location.origin}/editor/${songId}`;
+    navigator.clipboard.writeText(url);
+    toast.success('Link editor disalin ke clipboard');
+  }
+
   async function deleteSong(id: string) {
     if (!confirm('Hapus lagu ini?')) return;
     try {
@@ -335,6 +374,8 @@ export default function DashboardPage() {
                     <SongCard
                       song={song}
                       onDelete={() => deleteSong(song.id)}
+                      onDuplicate={() => duplicateSong(song)}
+                      onShare={() => shareSong(song.id)}
                       onOpen={() => router.push(`/editor/${song.id}`)}
                     />
                   </motion.div>
@@ -373,47 +414,80 @@ function NavItem({
   return <button className={cls} style={style} onClick={onClick}>{icon} {label}</button>;
 }
 
-function SongCard({ song, onDelete, onOpen }: {
+function SongCard({ song, onDelete, onDuplicate, onShare, onOpen }: {
   song: SongSummary;
   onDelete: () => void;
+  onDuplicate: () => void;
+  onShare: () => void;
   onOpen: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="song-card group" onClick={onOpen}>
+      {/* Click outside overlay to close dropdown */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenuOpen(false);
+          }}
+        />
+      )}
+
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center text-white text-xs font-bold shadow-sm">
             {song.key}
           </div>
-          <div className="text-xs" style={{ color: 'var(--music-muted)' }}>
+          <div className="text-xs font-medium" style={{ color: 'var(--music-muted)' }}>
             {song.timeSignature} • {song.tempo} BPM
           </div>
         </div>
 
-        <div className="relative" onClick={(e) => e.stopPropagation()}>
+        {/* 3-Dots Menu button */}
+        <div className="relative z-40" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="w-7 h-7 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ color: 'var(--music-muted)', background: 'var(--music-surface-2)' }}
+            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+              menuOpen ? 'opacity-100 bg-white/10' : 'opacity-0 group-hover:opacity-100 hover:bg-white/10'
+            }`}
+            style={{ color: 'var(--music-muted)' }}
           >
             <MoreHorizontal size={14} />
           </button>
-          {menuOpen && (
-            <div className="absolute right-0 top-8 w-40 rounded-xl border shadow-xl z-20 py-1"
-              style={{ background: 'var(--music-surface)', borderColor: 'var(--music-border)' }}>
-              <MenuItem icon={<Copy size={13} />} label="Duplikat" onClick={() => {}} />
-              <MenuItem icon={<Share2 size={13} />} label="Bagikan" onClick={() => {}} />
-              <div className="h-px my-1" style={{ background: 'var(--music-border)' }} />
-              <MenuItem
-                icon={<Trash2 size={13} />}
-                label="Hapus"
-                danger
-                onClick={() => { setMenuOpen(false); onDelete(); }}
-              />
-            </div>
-          )}
+
+          <AnimatePresence>
+            {menuOpen && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                transition={{ duration: 0.12 }}
+                className="absolute right-0 top-8 w-44 rounded-xl border shadow-2xl z-40 py-1 overflow-hidden backdrop-blur-md"
+                style={{ background: 'var(--music-surface)', borderColor: 'var(--music-border)' }}
+              >
+                <MenuItem
+                  icon={<Copy size={13} />}
+                  label="Duplikat"
+                  onClick={() => { setMenuOpen(false); onDuplicate(); }}
+                />
+                <MenuItem
+                  icon={<Share2 size={13} />}
+                  label="Bagikan Link"
+                  onClick={() => { setMenuOpen(false); onShare(); }}
+                />
+                <div className="h-px my-1" style={{ background: 'var(--music-border)' }} />
+                <MenuItem
+                  icon={<Trash2 size={13} />}
+                  label="Hapus Lagu"
+                  danger
+                  onClick={() => { setMenuOpen(false); onDelete(); }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -424,14 +498,14 @@ function SongCard({ song, onDelete, onOpen }: {
         {song.composer || 'Tanpa Pencipta'}
       </p>
 
-      <div className="flex items-center justify-between mt-auto">
+      <div className="flex items-center justify-between mt-auto pt-2 border-t border-white/5">
         <span className="text-xs" style={{ color: 'var(--music-muted)' }}>
           <Clock size={10} className="inline mr-1" />
           {formatDate(song.updatedAt)}
         </span>
         {song.room && (
-          <span className="text-xs px-2 py-0.5 rounded-full"
-            style={{ background: 'rgba(99,102,241,0.1)', color: 'var(--music-accent)' }}>
+          <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+            style={{ background: 'rgba(99,102,241,0.15)', color: 'var(--music-accent)' }}>
             <Users size={10} className="inline mr-1" />
             {song.room.code}
           </span>
@@ -450,7 +524,7 @@ function MenuItem({ icon, label, onClick, danger }: {
   return (
     <button
       onClick={onClick}
-      className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-all hover:bg-white/5"
+      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-all hover:bg-white/10"
       style={{ color: danger ? '#ef4444' : 'var(--music-text)' }}
     >
       {icon} {label}
