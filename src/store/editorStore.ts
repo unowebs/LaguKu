@@ -11,6 +11,7 @@ import {
   EditorSelection,
   InstrumentName,
   CollaboratorInfo,
+  BarLine,
 } from '@/types';
 import {
   createNote,
@@ -66,7 +67,7 @@ interface EditorStore {
   updateSyllable: (lineId: string, noteIndex: number, syllable: string) => void;
 
   // Actions — Bar lines
-  insertBarLine: (lineId: string, position: number, type?: string) => void;
+  insertBarLine: (lineId: string, position: number, type?: BarLine['type']) => void;
   removeBarLine: (lineId: string, position: number) => void;
 
   // Actions — Playback
@@ -243,7 +244,7 @@ export const useEditorStore = create<EditorStore>()(
         }
       }),
 
-    insertBarLine: (lineId, position, type = 'single') =>
+    insertBarLine: (lineId: string, position: number, type: BarLine['type'] = 'single') =>
       set((state) => {
         if (!state.song) return;
         const line = state.song.content.lines.find((l) => l.id === lineId);
