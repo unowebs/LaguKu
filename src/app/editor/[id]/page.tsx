@@ -1,6 +1,4 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useEditorStore } from '@/store/editorStore';
@@ -116,11 +114,11 @@ export default function EditorPage() {
     setMobilePanelOpen(true);
   };
 
-  const mobileNavItems: { tab: PanelTab; icon: React.ReactNode; label: string }[] = [
-    { tab: 'settings', icon: <Settings size={20} />, label: 'Pengaturan' },
-    { tab: 'versions', icon: <History size={20} />, label: 'Riwayat' },
-    { tab: 'comments', icon: <MessageSquare size={20} />, label: 'Komentar' },
-    { tab: 'collab', icon: <Users size={20} />, label: 'Kolaborasi' },
+  const mobileNavItems: { tab: PanelTab; Icon: React.ComponentType<{ size?: number }>; label: string }[] = [
+    { tab: 'settings', Icon: Settings, label: 'Pengaturan' },
+    { tab: 'versions', Icon: History, label: 'Riwayat' },
+    { tab: 'comments', Icon: MessageSquare, label: 'Komentar' },
+    { tab: 'collab', Icon: Users, label: 'Kolaborasi' },
   ];
 
   if (!song) {
@@ -160,19 +158,19 @@ export default function EditorPage() {
         background: 'var(--music-surface)',
         borderTop: '1px solid var(--music-border)',
       }}>
-        {mobileNavItems.map((item) => (
+        {mobileNavItems.map(({ tab, Icon, label }) => (
           <button
-            key={item.tab}
-            onClick={() => openMobilePanel(item.tab)}
+            key={tab}
+            onClick={() => openMobilePanel(tab)}
             className="mobile-bottom-nav-btn"
             style={{
-              color: mobilePanelOpen && mobilePanelTab === item.tab
+              color: mobilePanelOpen && mobilePanelTab === tab
                 ? 'var(--music-accent)'
                 : 'var(--music-muted)',
             }}
           >
-            {item.icon}
-            <span>{item.label}</span>
+            <Icon size={20} />
+            <span>{label}</span>
           </button>
         ))}
       </nav>
@@ -196,5 +194,4 @@ export default function EditorPage() {
       </div>
     </div>
   );
-}
 }
