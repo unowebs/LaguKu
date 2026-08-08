@@ -257,12 +257,12 @@ export const useEditorStore = create<EditorStore>()(
               line.barTypes.splice(idx, 1);
             } else {
               // Different type, update its type
-              line.barTypes[idx] = { type: type as any };
+              line.barTypes[idx] = { type };
             }
           } else {
             // Insert new bar line
             line.barPositions.push(position);
-            line.barTypes.push({ type: type as any });
+            line.barTypes.push({ type });
 
             // Sort both arrays in sync using zipped elements
             const zipped = line.barPositions.map((pos, i) => ({

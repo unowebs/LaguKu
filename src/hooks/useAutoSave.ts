@@ -62,9 +62,17 @@ export function useAutoSave() {
     }
   }, [markSaved, markSaving]);
 
-  // Debounce 1.5 seconds
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedSave = useCallback(debounce(save, 1500), [save]);
+  const saveRef = useRef(save);
+  saveRef.current = save;
+
+  const debouncedSaveRef = useRef<((song: Song) => void) | null>(null);
+  if (!debouncedSaveRef.current) {
+    debouncedSaveRef.current = debounce((song: Song) => {
+      saveRef.current(song);
+    }, 1500);
+  }
+
+  const debouncedSave = debouncedSaveRef.current;
 
   return { debouncedSave, isSaving, error, lastSaved };
 }

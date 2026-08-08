@@ -25,14 +25,11 @@ interface SidePanelProps {
 }
 
 export function SidePanel({ songId, mobileInitialTab, mobileOpen, onMobileClose }: SidePanelProps) {
-  const [activeTab, setActiveTab] = useState<PanelTab>(mobileInitialTab ?? 'settings');
+  const [activeTabState, setActiveTab] = useState<PanelTab>('settings');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { song, updateSongMeta } = useEditorStore();
 
-  // Sync tab when opened from mobile nav
-  React.useEffect(() => {
-    if (mobileInitialTab) setActiveTab(mobileInitialTab);
-  }, [mobileInitialTab]);
+  const activeTab = (mobileOpen && mobileInitialTab) ? mobileInitialTab : activeTabState;
 
   // Desktop collapsed state — on mobile this is ignored
   if (isCollapsed) {
@@ -136,7 +133,7 @@ function SettingsPanel({
   updateSongMeta,
 }: {
   song: Song;
-  updateSongMeta: (meta: any) => void;
+  updateSongMeta: (meta: Partial<Song>) => void;
 }) {
   if (!song) return null;
 

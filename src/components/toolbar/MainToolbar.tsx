@@ -397,7 +397,12 @@ export function MainToolbar() {
 
     if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
       try {
-        const handle = await (window as any).showSaveFilePicker({
+        const win = window as unknown as {
+          showSaveFilePicker: (opts: unknown) => Promise<{
+            createWritable: () => Promise<{ write: (b: Blob) => Promise<void>; close: () => Promise<void> }>;
+          }>;
+        };
+        const handle = await win.showSaveFilePicker({
           suggestedName,
           types: [{
             description,
@@ -410,13 +415,14 @@ export function MainToolbar() {
         await writable.write(blob);
         await writable.close();
         return true;
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
+      } catch (err: unknown) {
+        const error = err as { name?: string; message?: string };
+        if (error.name === 'AbortError') {
           // User cancelled the save dialog
           return false;
         }
         console.error('SaveFilePicker error:', err);
-        toast.error(`Metode simpan langsung gagal: ${err.message || err}`);
+        toast.error(`Metode simpan langsung gagal: ${error.message || String(err)}`);
         // Attempt fallback, but notify user in case browser blocks the async click
         toast.loading('Mencoba mengunduh otomatis ke folder Downloads...', { id: 'fallback-dl', duration: 3000 });
       }
@@ -431,9 +437,10 @@ export function MainToolbar() {
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 100);
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string };
       console.error('Fallback download error:', err);
-      toast.error(`Gagal mengunduh berkas: ${err.message || err}`);
+      toast.error(`Gagal mengunduh berkas: ${error.message || String(err)}`);
       return false;
     }
   };
@@ -646,10 +653,11 @@ export function MainToolbar() {
       if (success) {
         toast.success('Dokumen PDF berhasil diunduh (Full 1 Lembar A4)!');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string };
       console.error(err);
       toast.dismiss(loadingToast);
-      toast.error(`Gagal mengunduh PDF: ${err.message || err}`);
+      toast.error(`Gagal mengunduh PDF: ${error.message || String(err)}`);
     }
   };
 
@@ -685,10 +693,11 @@ export function MainToolbar() {
         mimeType,
         0.98
       );
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const error = err as { message?: string };
       console.error(err);
       toast.dismiss(loadingToast);
-      toast.error(`Gagal mengunduh gambar: ${err.message || err}`);
+      toast.error(`Gagal mengunduh gambar: ${error.message || String(err)}`);
     }
   };
 
@@ -1270,7 +1279,7 @@ function StructureTab({
   transposeDown,
 }: {
   song: Song | null;
-  updateSongMeta: (meta: any) => void;
+  updateSongMeta: (meta: Partial<Song>) => void;
   transposeUp: () => void;
   transposeDown: () => void;
 }) {
@@ -1351,7 +1360,7 @@ function PlaybackTab({
   song: Song | null;
   instrument: InstrumentName;
   setInstrument: (i: InstrumentName) => void;
-  updateSongMeta: (meta: any) => void;
+  updateSongMeta: (meta: Partial<Song>) => void;
 }) {
   if (!song) return null;
 

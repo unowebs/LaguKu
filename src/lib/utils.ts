@@ -44,7 +44,7 @@ export function getCollaboratorColor(index: number): string {
   return colors[index % colors.length];
 }
 
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   fn: T,
   delay: number
 ): (...args: Parameters<T>) => void {
