@@ -1,8 +1,10 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
 
+// Next.js 16: file renamed from middleware.ts → proxy.ts
+// Default export is still supported per the proxy convention docs.
 export default withAuth(
-  function middleware(req) {
+  function proxy(req) {
     return NextResponse.next();
   },
   {
