@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useEditorStore } from '@/store/editorStore';
@@ -11,6 +11,9 @@ import { useAutoSave } from '@/hooks/useAutoSave';
 import { useCollaboration } from '@/hooks/useCollaboration';
 import { Song } from '@/types';
 import toast from 'react-hot-toast';
+import { Settings, History, MessageSquare, Users } from 'lucide-react';
+
+type PanelTab = 'settings' | 'versions' | 'comments' | 'collab';
 
 export default function EditorPage() {
   const params = useParams();
@@ -18,6 +21,10 @@ export default function EditorPage() {
   const { data: session } = useSession();
   const { song, setSong, isDirty, setCollaborators } = useEditorStore();
   const { debouncedSave, error: saveError } = useAutoSave();
+
+  // Mobile panel state
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+  const [mobilePanelTab, setMobilePanelTab] = useState<PanelTab>('settings');
 
   const roomCode = song?.room?.code;
   const collabUser = session?.user
@@ -104,6 +111,18 @@ export default function EditorPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selection, deleteNote, setSelection, updateNote]);
 
+  const openMobilePanel = (tab: PanelTab) => {
+    setMobilePanelTab(tab);
+    setMobilePanelOpen(true);
+  };
+
+  const mobileNavItems: { tab: PanelTab; icon: React.ReactNode; label: string }[] = [
+    { tab: 'settings', icon: <Settings size={20} />, label: 'Pengaturan' },
+    { tab: 'versions', icon: <History size={20} />, label: 'Riwayat' },
+    { tab: 'comments', icon: <MessageSquare size={20} />, label: 'Komentar' },
+    { tab: 'collab', icon: <Users size={20} />, label: 'Kolaborasi' },
+  ];
+
   if (!song) {
     return (
       <div className="min-h-screen flex items-center justify-center"
@@ -127,14 +146,55 @@ export default function EditorPage() {
 
       {/* Editor area */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Main editor */}
-        <SongEditor className="flex-1 min-w-0" />
+        {/* Main editor — add padding-bottom on mobile for bottom nav */}
+        <SongEditor className="flex-1 min-w-0 mobile-editor-content" />
 
-        {/* Side panel — hidden on mobile */}
+        {/* Side panel — visible on desktop */}
         <div className="hidden md:block">
           <SidePanel songId={songId} />
         </div>
       </div>
+
+      {/* ── Mobile bottom navigation bar ─────────────────────────── */}
+      <nav className="mobile-bottom-nav md:hidden" style={{
+        background: 'var(--music-surface)',
+        borderTop: '1px solid var(--music-border)',
+      }}>
+        {mobileNavItems.map((item) => (
+          <button
+            key={item.tab}
+            onClick={() => openMobilePanel(item.tab)}
+            className="mobile-bottom-nav-btn"
+            style={{
+              color: mobilePanelOpen && mobilePanelTab === item.tab
+                ? 'var(--music-accent)'
+                : 'var(--music-muted)',
+            }}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      {/* ── Mobile drawer backdrop ────────────────────────────────── */}
+      {mobilePanelOpen && (
+        <div
+          className="mobile-panel-backdrop md:hidden"
+          onClick={() => setMobilePanelOpen(false)}
+        />
+      )}
+
+      {/* ── Mobile SidePanel drawer ───────────────────────────────── */}
+      <div className="md:hidden">
+        <SidePanel
+          songId={songId}
+          mobileOpen={mobilePanelOpen}
+          mobileInitialTab={mobilePanelTab}
+          onMobileClose={() => setMobilePanelOpen(false)}
+        />
+      </div>
     </div>
   );
+}
 }

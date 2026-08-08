@@ -16,13 +16,25 @@ type PanelTab = 'versions' | 'comments' | 'collab' | 'settings';
 
 interface SidePanelProps {
   songId: string;
+  /** Tab to open when panel is opened from mobile bottom nav */
+  mobileInitialTab?: PanelTab;
+  /** Whether the panel is open in mobile drawer mode */
+  mobileOpen?: boolean;
+  /** Callback to close mobile drawer */
+  onMobileClose?: () => void;
 }
 
-export function SidePanel({ songId }: SidePanelProps) {
-  const [activeTab, setActiveTab] = useState<PanelTab>('settings');
+export function SidePanel({ songId, mobileInitialTab, mobileOpen, onMobileClose }: SidePanelProps) {
+  const [activeTab, setActiveTab] = useState<PanelTab>(mobileInitialTab ?? 'settings');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const { song, updateSongMeta } = useEditorStore();
 
+  // Sync tab when opened from mobile nav
+  React.useEffect(() => {
+    if (mobileInitialTab) setActiveTab(mobileInitialTab);
+  }, [mobileInitialTab]);
+
+  // Desktop collapsed state — on mobile this is ignored
   if (isCollapsed) {
     return (
       <div className="w-10 flex-shrink-0 border-l flex flex-col items-center py-3 gap-3"
@@ -50,23 +62,32 @@ export function SidePanel({ songId }: SidePanelProps) {
     );
   }
 
+  const panelTabs = [
+    { tab: 'settings' as PanelTab, icon: <Settings size={13} />, label: 'Pengaturan' },
+    { tab: 'versions' as PanelTab, icon: <History size={13} />, label: 'Riwayat' },
+    { tab: 'comments' as PanelTab, icon: <MessageSquare size={13} />, label: 'Komentar' },
+    { tab: 'collab' as PanelTab, icon: <Users size={13} />, label: 'Kolaborasi' },
+  ];
+
   return (
-    <div className="sidebar flex-shrink-0 flex flex-col">
+    <div className={cn('sidebar flex-shrink-0 flex flex-col', mobileOpen && 'open mobile-drawer')}>
+      {/* Mobile drag handle */}
+      {mobileOpen && (
+        <div className="flex justify-center pt-2 pb-1 md:hidden">
+          <div className="w-10 h-1 rounded-full" style={{ background: 'var(--music-border)' }} />
+        </div>
+      )}
+
       {/* Panel header */}
       <div className="flex items-center justify-between px-4 h-10 border-b flex-shrink-0"
         style={{ borderColor: 'var(--music-border)' }}>
         <div className="flex gap-1">
-          {[
-            { tab: 'settings', icon: <Settings size={13} />, title: 'Pengaturan' },
-            { tab: 'versions', icon: <History size={13} />, title: 'Riwayat' },
-            { tab: 'comments', icon: <MessageSquare size={13} />, title: 'Komentar' },
-            { tab: 'collab', icon: <Users size={13} />, title: 'Kolaborasi' },
-          ].map((item) => (
+          {panelTabs.map((item) => (
             <button
               key={item.tab}
-              onClick={() => setActiveTab(item.tab as PanelTab)}
+              onClick={() => setActiveTab(item.tab)}
               className="w-7 h-7 rounded-md flex items-center justify-center transition-all"
-              title={item.title}
+              title={item.label}
               style={{
                 color: activeTab === item.tab ? 'var(--music-accent)' : 'var(--music-muted)',
                 background: activeTab === item.tab ? 'rgba(99,102,241,0.1)' : undefined,
@@ -76,8 +97,16 @@ export function SidePanel({ songId }: SidePanelProps) {
             </button>
           ))}
         </div>
-        <button onClick={() => setIsCollapsed(true)}
-          className="toolbar-icon-btn w-6 h-6" title="Tutup panel">
+        {/* Active tab label */}
+        <span className="text-xs font-medium flex-1 text-center" style={{ color: 'var(--music-text)' }}>
+          {panelTabs.find(t => t.tab === activeTab)?.label}
+        </span>
+        {/* Close button — on mobile calls onMobileClose, on desktop collapses */}
+        <button
+          onClick={() => mobileOpen ? onMobileClose?.() : setIsCollapsed(true)}
+          className="toolbar-icon-btn w-6 h-6"
+          title="Tutup panel"
+        >
           <ChevronRight size={13} />
         </button>
       </div>
