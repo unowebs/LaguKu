@@ -18,7 +18,7 @@
 
 import React, { useMemo, useEffect, useState } from 'react';
 import { LyricLine as LyricLineType, NoteAngka } from '@/types';
-import { NoteCell, BarLineCell, CELL_TOTAL_HEIGHT, LAYER_H } from './NoteCell';
+import { NoteCell, BarLineCell, CELL_TOTAL_HEIGHT } from './NoteCell';
 import { useEditorStore } from '@/store/editorStore';
 import { getNoteDurationInBeats, getMeasureSizeInBeats } from '@/utils/noteAngka';
 
@@ -63,8 +63,6 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
     playbackLineIdx,
     playbackNoteIdx,
     setSelection,
-    insertNote,
-    defaultDuration,
     song,
     zoom,
     collaborators,
@@ -135,7 +133,6 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
         let accumulated = 0;
         for (let mi = 0; mi < result.length; mi++) {
           const m = result[mi];
-          const measureEndNoteIdx = accumulated + m.notes.length - 1;
           if (pos <= accumulated + m.notes.length) {
             result[mi].endBarType = barType.type;
             break;
@@ -314,7 +311,6 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
         <AddNoteButton
           lineId={line.id}
           noteCount={line.notes.length}
-          defaultDuration={defaultDuration}
           cellHeight={CELL_TOTAL_HEIGHT}
         />
       </div>
@@ -344,12 +340,10 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
 function AddNoteButton({
   lineId,
   noteCount,
-  defaultDuration,
   cellHeight,
 }: {
   lineId: string;
   noteCount: number;
-  defaultDuration: string;
   cellHeight: number;
 }) {
   const { insertNote } = useEditorStore();

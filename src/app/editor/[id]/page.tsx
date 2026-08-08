@@ -7,7 +7,7 @@ import { SongEditor } from '@/components/editor/SongEditor';
 import { SidePanel } from '@/components/editor/SidePanel';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useCollaboration } from '@/hooks/useCollaboration';
-import { Song } from '@/types';
+import { Song, NotePitch } from '@/types';
 import toast from 'react-hot-toast';
 import { Settings, History, MessageSquare, Users } from 'lucide-react';
 
@@ -98,7 +98,7 @@ export default function EditorPage() {
       if (['0', '1', '2', '3', '4', '5', '6', '7'].includes(e.key)) {
         e.preventDefault();
         updateNote(selection.lineId, selection.noteIndex, {
-          pitch: e.key as any,
+          pitch: e.key as NotePitch,
           isRest: e.key === '0',
         });
         toast.success(`Not diubah ke ${e.key === '0' ? 'Rest (0)' : e.key}`, { id: 'change-note' });

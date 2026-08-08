@@ -1,6 +1,4 @@
-'use client';
-
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Song } from '@/types';
 import { debounce } from '@/lib/utils';
 import { useEditorStore } from '@/store/editorStore';
@@ -62,17 +60,10 @@ export function useAutoSave() {
     }
   }, [markSaved, markSaving]);
 
-  const saveRef = useRef(save);
-  saveRef.current = save;
-
-  const debouncedSaveRef = useRef<((song: Song) => void) | null>(null);
-  if (!debouncedSaveRef.current) {
-    debouncedSaveRef.current = debounce((song: Song) => {
-      saveRef.current(song);
-    }, 1500);
-  }
-
-  const debouncedSave = debouncedSaveRef.current;
+  // Debounce 1.5 seconds using useMemo
+  const debouncedSave = useMemo(() => debounce((song: Song) => {
+    save(song);
+  }, 1500), [save]);
 
   return { debouncedSave, isSaving, error, lastSaved };
 }

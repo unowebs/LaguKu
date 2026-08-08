@@ -6,10 +6,9 @@ import { usePlayer } from '@/hooks/usePlayer';
 import Link from 'next/link';
 import {
   Play, Square, SkipBack, ChevronUp, ChevronDown,
-  Download, Upload, Undo2, Redo2, ZoomIn, ZoomOut,
+  Download, Upload, ZoomIn, ZoomOut,
   Minus, Plus, FileJson, FileText, FileImage, Trash2, ArrowLeft
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { NotePitch, InstrumentName, MusicalKey, Song, NoteDuration, NoteOctave, NoteAngka } from '@/types';
 import toast from 'react-hot-toast';
 import { getNoteDurationInBeats, getMeasureSizeInBeats } from '@/utils/noteAngka';

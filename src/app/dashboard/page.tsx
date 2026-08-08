@@ -31,11 +31,7 @@ export default function DashboardPage() {
   const [isDark, setIsDark] = useState(true);
   const [currentTab, setCurrentTab] = useState<'all' | 'collaboration' | 'recent'>('all');
 
-  useEffect(() => {
-    fetchSongs();
-  }, []);
-
-  async function fetchSongs() {
+  const fetchSongs = async () => {
     try {
       const res = await fetch('/api/songs');
       if (res.status === 401) {
@@ -49,7 +45,11 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
+
+  useEffect(() => {
+    fetchSongs();
+  }, []);
 
   async function createNewSong() {
     try {
