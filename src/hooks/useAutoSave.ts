@@ -1,3 +1,5 @@
+'use client';
+
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Song } from '@/types';
 import { debounce } from '@/lib/utils';
