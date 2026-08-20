@@ -16,8 +16,8 @@ export interface NoteAngka {
   pitch: NotePitch;
   octave: NoteOctave;
   duration: NoteDuration;
-  underlines: 0 | 1 | 2;   // garis bawah = nilai nada lebih cepat (1/8, 1/16)
-  overlines: 0 | 1 | 2;    // garis atas = nilai nada lebih lambat (whole, half)
+  isDot: boolean;           // not titik (.) — elemen tersendiri, memperpanjang durasi not sebelumnya
+  overlines: 0 | 1 | 2;    // garis atas: 0=quarter, 1=half (2 ketukan), 2=whole (4 ketukan)
   dotted: boolean;          // titik samping = 1.5x durasi
   tied: boolean;            // not disambung ke not berikutnya
   slurred: boolean;         // legato slur

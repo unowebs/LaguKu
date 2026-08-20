@@ -1,9 +1,9 @@
 'use client';
 
 /**
- * NoteCell — Grid-based not angka cell dengan 8 layer fixed-height.
+ * NoteCell — Grid-based not angka cell dengan 7 layer fixed-height.
  *
- * Setiap NoteCell memiliki tinggi total yang KONSTAN (112px),
+ * Setiap NoteCell memiliki tinggi total yang KONSTAN,
  * sehingga semua cell selalu sejajar secara vertikal, bahkan saat
  * cells dengan konten berbeda berada dalam baris yang sama.
  *
@@ -13,12 +13,11 @@
  *  accent         14px  Fermata (𝄐) / Accent (>) / Staccato (·)
  *  octave-high     8px  Titik atas untuk oktaf tinggi
  *  overlines       8px  Garis atas (half=1, whole=2)
- *  note           26px  Angka not: 1–7 atau 0 (rest), + titik jika dotted
- *  underlines      8px  Garis bawah (eighth=1, sixteenth=2) — full width = beam
+ *  note           26px  Angka not: 1–7, 0 (rest), atau . (titik/dot)
  *  octave-low      8px  Titik bawah untuk oktaf rendah
  *  lyric          22px  Suku kata lagu (contentEditable inline)
  *  ──────────────────────────────────────────────
- *  Total:        112px
+ *  Total:        104px
  */
 
 import React from 'react';
@@ -32,15 +31,14 @@ export const LAYER_H = {
   octaveHigh:  8,
   overlines:   8,
   note:       26,
-  underlines: 20,
   octaveLow:   8,
   lyric:      22,
 } as const;
 
 export const CELL_TOTAL_HEIGHT =
   LAYER_H.chord + LAYER_H.accent + LAYER_H.octaveHigh + LAYER_H.overlines +
-  LAYER_H.note  + LAYER_H.underlines + LAYER_H.octaveLow + LAYER_H.lyric;
-// = 124px
+  LAYER_H.note  + LAYER_H.octaveLow + LAYER_H.lyric;
+// = 104px
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -180,60 +178,52 @@ export function NoteCell({
         ) : null
       )}
 
-      {/* ── Layer 5: Note digit ────────────────────────────────────────────── */}
+      {/* ── Layer 5: Note digit / Dot ──────────────────────────────────────── */}
       {layer(LAYER_H.note,
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontFamily: "'JetBrains Mono', 'Inter', 'Courier New', monospace",
-          fontWeight: 700,
-          fontSize: noteFontSize,
-          lineHeight: 1,
-          color: 'currentColor',
-          paddingBottom: 6,
-        }}>
-          <span>{note.isRest ? '0' : note.pitch}</span>
-          {note.dotted && (
-            <span style={{
-              fontSize: noteFontSize * 0.7,
-              marginLeft: 1,
-            }}>
-              .
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* ── Layer 6: Underlines (eighth=1, sixteenth=2) — full width beam ──── */}
-      {layer(LAYER_H.underlines,
-        note.underlines > 0 ? (
+        note.isDot ? (
+          // Not titik — elemen tersendiri, tampil sebagai '.'
           <div style={{
             display: 'flex',
-            flexDirection: 'column',
-            width: '100%',
-            height: '100%',
-            justifyContent: 'flex-start',
-            paddingTop: 12,
-            gap: 1.5,
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: "'JetBrains Mono', 'Inter', 'Courier New', monospace",
+            fontWeight: 700,
+            fontSize: noteFontSize * 1.1,
+            lineHeight: 1,
+            color: 'currentColor',
+            opacity: 0.85,
+            paddingBottom: 6,
           }}>
-            {Array.from({ length: note.underlines }).map((_, i) => (
-              <div key={i} style={{
-                display: 'block',
-                // Full width = beam connects seamlessly to adjacent cells
-                width: '100%',
-                height: 1.5,
-                background: 'currentColor',
-                flexShrink: 0,
-              }} />
-            ))}
+            <span>.</span>
           </div>
-        ) : null
+        ) : (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: "'JetBrains Mono', 'Inter', 'Courier New', monospace",
+            fontWeight: 700,
+            fontSize: noteFontSize,
+            lineHeight: 1,
+            color: 'currentColor',
+            paddingBottom: 6,
+          }}>
+            <span>{note.isRest ? '0' : note.pitch}</span>
+            {note.dotted && (
+              <span style={{
+                fontSize: noteFontSize * 0.7,
+                marginLeft: 1,
+              }}>
+                .
+              </span>
+            )}
+          </div>
+        )
       )}
 
-      {/* ── Layer 7: Octave-low dot ─────────────────────────────────────────── */}
+      {/* ── Layer 6: Octave-low dot ─────────────────────────────────────────── */}
       {layer(LAYER_H.octaveLow,
-        note.octave === 'low' && !note.isRest
+        note.octave === 'low' && !note.isRest && !note.isDot
           ? <span style={{ display: 'block', width: 4, height: 4, borderRadius: '50%', background: 'currentColor' }} />
           : null
       )}
@@ -271,7 +261,7 @@ export function NoteCell({
         <div
           style={{
             position: 'absolute',
-            top: LAYER_H.chord + LAYER_H.accent + LAYER_H.octaveHigh + LAYER_H.overlines + LAYER_H.note + LAYER_H.underlines + LAYER_H.octaveLow - 3,
+            top: LAYER_H.chord + LAYER_H.accent + LAYER_H.octaveHigh + LAYER_H.overlines + LAYER_H.note + LAYER_H.octaveLow - 3,
             left: '5%',
             width: '90%',
             height: 7,
@@ -353,8 +343,7 @@ export function BarLineCell({ type, warning = false, tooltip }: BarLineCellProps
         </span>
       </div>
 
-      {/* Mirror layers 6-8 (empty) for consistent height */}
-      <div style={{ height: LAYER_H.underlines }} />
+      {/* Mirror layers 6-7 (empty) for consistent height */}
       <div style={{ height: LAYER_H.octaveLow }} />
       <div style={{ height: LAYER_H.lyric }} />
     </div>

@@ -54,12 +54,12 @@ export function NoteSymbol({
       {/* Note body */}
       <div className="relative flex flex-col items-center">
         {/* Octave high dot — dot above */}
-        {note.octave === 'high' && !note.isRest && (
+        {note.octave === 'high' && !note.isRest && !note.isDot && (
           <span className="block w-1 h-1 rounded-full bg-current mb-[1px]" />
         )}
 
-        {/* Overlines (garis atas — nilai nada panjang: half=1 garis, whole=2 garis) */}
-        {note.overlines > 0 && Array.from({ length: note.overlines }).map((_, i) => (
+        {/* Overlines (garis atas — nilai nada: half=1 garis, whole=2 garis) */}
+        {!note.isDot && note.overlines > 0 && Array.from({ length: note.overlines }).map((_, i) => (
           <span
             key={i}
             className="block h-[1.5px] bg-current mb-[1px]"
@@ -67,42 +67,30 @@ export function NoteSymbol({
           />
         ))}
 
-        {/* Main note pitch */}
+        {/* Main note pitch / Dot */}
         <span
           className={cn(
             'note-digit font-mono font-bold leading-none',
             note.isRest && 'text-music-muted',
+            note.isDot && 'opacity-85',
             isActive && 'text-yellow-300',
             isSelected && 'text-blue-400',
             !isActive && !isSelected && 'text-music-note'
           )}
         >
-          {note.isRest ? '0' : note.pitch}
-          {note.dotted && (
+          {note.isDot ? '.' : note.isRest ? '0' : note.pitch}
+          {!note.isDot && note.dotted && (
             <span className="ml-[1px] text-[0.7em]">.</span>
           )}
         </span>
 
         {/* Staccato */}
-        {note.staccato && (
+        {!note.isDot && note.staccato && (
           <span className="block w-1 h-1 rounded-full bg-current mt-[1px]" />
         )}
 
-        {/* Underlines (garis bawah — nilai nada pendek: eighth=1 garis, sixteenth=2 garis) */}
-        {note.underlines > 0 && (
-          <div className="flex flex-col items-center gap-[1px] mt-[5px]">
-            {Array.from({ length: note.underlines }).map((_, i) => (
-              <span
-                key={i}
-                className="block h-[1.5px] bg-current"
-                style={{ minWidth: '14px' }}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Octave low dot — dot below (after underlines) */}
-        {note.octave === 'low' && !note.isRest && (
+        {/* Octave low dot — dot below */}
+        {note.octave === 'low' && !note.isRest && !note.isDot && (
           <span className="block w-1 h-1 rounded-full bg-current mt-[1px]" />
         )}
       </div>

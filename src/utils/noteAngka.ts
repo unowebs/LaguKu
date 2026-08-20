@@ -85,8 +85,6 @@ export function getDurationInSeconds(note: NoteAngka, bpm: number): number {
 
   let duration = baseDurations[note.duration] ?? beatDuration;
 
-  // Underlines: each underline halves duration (quarter → eighth → sixteenth)
-  for (let i = 0; i < note.underlines; i++) duration /= 2;
   // Overlines: each overline doubles duration (quarter → half → whole)
   for (let i = 0; i < note.overlines; i++) duration *= 2;
 
@@ -199,7 +197,7 @@ export function createNote(
     pitch,
     octave: 'normal',
     duration: 'quarter',
-    underlines: 0,
+    isDot: false,
     overlines: 0,
     dotted: false,
     tied: false,

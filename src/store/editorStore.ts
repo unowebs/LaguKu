@@ -61,6 +61,7 @@ interface EditorStore {
   // Actions — Notes
   setSelection: (sel: EditorSelection | null) => void;
   insertNote: (lineId: string, noteIndex: number, pitch: NotePitch, syllable?: string, duration?: NoteDuration) => void;
+  insertDotNote: (lineId: string, noteIndex: number) => void;
   updateNote: (lineId: string, noteIndex: number, updates: Partial<NoteAngka>) => void;
   updateNoteRange: (lineId: string, startIndex: number, endIndex: number, updates: Partial<NoteAngka> | ((note: NoteAngka, idx: number) => Partial<NoteAngka>)) => void;
   deleteNote: (lineId: string, noteIndex: number) => void;
@@ -179,16 +180,38 @@ export const useEditorStore = create<EditorStore>()(
         const line = state.song.content.lines.find((l) => l.id === lineId);
         if (line) {
           const dur = duration ?? state.defaultDuration;
-          const underlines = dur === 'eighth' ? 1 : dur === 'sixteenth' ? 2 : 0;
-          const overlines  = dur === 'half'  ? 1 : dur === 'whole'     ? 2 : 0;
+          const overlines  = dur === 'half'  ? 1 : dur === 'whole' ? 2 : 0;
           const note = createNote(pitch, syllable, {
             duration: dur,
-            underlines: underlines as 0|1|2,
+            isDot: false,
             overlines: overlines as 0|1|2,
           });
           line.notes.splice(noteIndex, 0, note);
 
           // Geser barPositions yang >= noteIndex agar tetap menunjuk ke not yang benar
+          line.barPositions = line.barPositions.map((pos) =>
+            pos >= noteIndex ? pos + 1 : pos
+          );
+
+          state.isDirty = true;
+        }
+      }),
+
+    insertDotNote: (lineId, noteIndex) =>
+      set((state) => {
+        if (!state.song) return;
+        const line = state.song.content.lines.find((l) => l.id === lineId);
+        if (line) {
+          // Not titik adalah elemen tersendiri — pitch '0' + isDot=true
+          // Durasi 0 (tidak menambah beat sendiri, hanya perpanjang not sebelumnya)
+          const dot = createNote('0', '', {
+            isDot: true,
+            isRest: false,
+            duration: 'quarter',
+            overlines: 0,
+          });
+          line.notes.splice(noteIndex, 0, dot);
+
           line.barPositions = line.barPositions.map((pos) =>
             pos >= noteIndex ? pos + 1 : pos
           );

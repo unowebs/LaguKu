@@ -50,6 +50,7 @@ export function MainToolbar() {
     setInstrument,
     setDefaultDuration,
     insertNote,
+    insertDotNote,
     updateNote,
     updateNoteRange,
     deleteNote,
@@ -85,16 +86,15 @@ export function MainToolbar() {
         updateNote(selection.lineId, selection.noteIndex, {
           pitch,
           isRest: pitch === '0',
+          isDot: false,
         });
         toast.success(`Not diubah ke ${pitch === '0' ? 'Rest (0)' : pitch}`, { id: 'change-note' });
       } else if (insertMode === 'insert-before') {
         insertNote(selection.lineId, selection.noteIndex, pitch);
-        // Selection tetap di posisi not baru (noteIndex tidak berubah karena not baru di-splice sebelumnya)
         toast.success(`Not ${pitch === '0' ? 'Rest' : pitch} disisipkan sebelum not terpilih`, { id: 'insert-note' });
       } else {
         // insert-after
         insertNote(selection.lineId, selection.noteIndex + 1, pitch);
-        // Pindahkan selection ke not baru
         setSelection({ lineId: selection.lineId, noteIndex: selection.noteIndex + 1 });
         toast.success(`Not ${pitch === '0' ? 'Rest' : pitch} disisipkan setelah not terpilih`, { id: 'insert-note' });
       }
@@ -103,6 +103,26 @@ export function MainToolbar() {
       if (lines.length === 0) return;
       const lastLine = lines[lines.length - 1];
       insertNote(lastLine.id, lastLine.notes.length, pitch);
+    }
+  };
+
+  const insertDotAtSelection = () => {
+    if (!song) return;
+    if (selection) {
+      if (insertMode === 'insert-before') {
+        insertDotNote(selection.lineId, selection.noteIndex);
+        toast.success('Not titik (.) disisipkan sebelum not terpilih', { id: 'insert-dot' });
+      } else {
+        // default: insert after (titik umumnya mengikuti not sebelumnya)
+        insertDotNote(selection.lineId, selection.noteIndex + 1);
+        setSelection({ lineId: selection.lineId, noteIndex: selection.noteIndex + 1 });
+        toast.success('Not titik (.) disisipkan setelah not terpilih', { id: 'insert-dot' });
+      }
+    } else {
+      const lines = song.content.lines;
+      if (lines.length === 0) return;
+      const lastLine = lines[lines.length - 1];
+      insertDotNote(lastLine.id, lastLine.notes.length);
     }
   };
 
@@ -201,8 +221,6 @@ export function MainToolbar() {
     });
   };
 
-  // Aligns chords, accents, octave dots, notes, duration lines, and lyrics
-  // Each musical property gets its own dedicated row for clean text output
   const generateAlignedLinesText = () => {
     if (!song) return '';
     const resultLines: string[] = [];
@@ -219,9 +237,7 @@ export function MainToolbar() {
         octaveDotAbove: string;  // dot above for high octave
         overline1: string;       // overline for half note
         overline2: string;       // second overline for whole note
-        note: string;            // pitch digit + dotted dot only
-        underline1: string;      // underline for eighth note
-        underline2: string;      // second underline for sixteenth note
+        note: string;            // pitch digit (or '.') + dotted dot only
         octaveDotBelow: string;  // dot below for low octave
         tieSlur: string;         // tie/slur indicator below
         lyric: string;
@@ -230,7 +246,7 @@ export function MainToolbar() {
 
       const emptyCell = (): AlignedCell => ({
         chord: '', accent: '', octaveDotAbove: '', overline1: '', overline2: '',
-        note: '', underline1: '', underline2: '', octaveDotBelow: '', tieSlur: '', lyric: '', isBarLine: false,
+        note: '', octaveDotBelow: '', tieSlur: '', lyric: '', isBarLine: false,
       });
 
       const barCell = (sym: string): AlignedCell => ({
@@ -249,36 +265,36 @@ export function MainToolbar() {
       line.notes.forEach((note, noteIdx) => {
         const cell = emptyCell();
 
-        // Note character — ONLY pitch digit + dotted dot
-        let noteStr: string = note.isRest ? '0' : note.pitch;
-        if (note.dotted) noteStr = `${noteStr}.`;
-        cell.note = noteStr;
+        // Note character — not titik tampil sebagai '.', otherwise digit
+        if (note.isDot) {
+          cell.note = '.';
+        } else {
+          let noteStr: string = note.isRest ? '0' : note.pitch;
+          if (note.dotted) noteStr = `${noteStr}.`;
+          cell.note = noteStr;
+        }
 
-        // Accent row (fermata > accent > staccato priority)
-        if (note.fermata) cell.accent = 'f';
-        else if (note.accent) cell.accent = '>';
-        else if (note.staccato) cell.accent = '.';
+        // Accent row (fermata > accent > staccato priority) — skip for dot notes
+        if (!note.isDot) {
+          if (note.fermata) cell.accent = 'f';
+          else if (note.accent) cell.accent = '>';
+          else if (note.staccato) cell.accent = '.';
+        }
 
-        // Octave indicators
-        if (!note.isRest) {
+        // Octave indicators — skip for dot notes
+        if (!note.isRest && !note.isDot) {
           if (note.octave === 'high') cell.octaveDotAbove = '.';
           if (note.octave === 'low') cell.octaveDotBelow = '.';
         }
 
-        // Overlines (half=1, whole=2)
-        if (note.overlines >= 1 || note.duration === 'half' || note.duration === 'whole') {
-          cell.overline1 = '-';
-        }
-        if (note.overlines >= 2 || note.duration === 'whole') {
-          cell.overline2 = '-';
-        }
-
-        // Underlines (eighth=1, sixteenth=2)
-        if (note.underlines >= 1 || note.duration === 'eighth' || note.duration === 'sixteenth') {
-          cell.underline1 = '_';
-        }
-        if (note.underlines >= 2 || note.duration === 'sixteenth') {
-          cell.underline2 = '_';
+        // Overlines (half=1 garis, whole=2 garis) — skip for dot notes
+        if (!note.isDot) {
+          if (note.overlines >= 1 || note.duration === 'half' || note.duration === 'whole') {
+            cell.overline1 = '-';
+          }
+          if (note.overlines >= 2 || note.duration === 'whole') {
+            cell.overline2 = '-';
+          }
         }
 
         // Tie / Slur
@@ -286,7 +302,7 @@ export function MainToolbar() {
         else if (note.slurred) cell.tieSlur = '^';
 
         cell.chord = note.chord || '';
-        cell.lyric = note.syllable || '';
+        cell.lyric = note.isDot ? '' : (note.syllable || '');
 
         cells.push(cell);
 
@@ -320,7 +336,6 @@ export function MainToolbar() {
             cell.chord.length, cell.accent.length,
             cell.octaveDotAbove.length, cell.overline1.length, cell.overline2.length,
             cell.note.length,
-            cell.underline1.length, cell.underline2.length,
             cell.octaveDotBelow.length, cell.tieSlur.length,
             cell.lyric.length, 1
           );
@@ -331,8 +346,6 @@ export function MainToolbar() {
             overline1:      cell.overline1.padEnd(maxLen, ' '),
             overline2:      cell.overline2.padEnd(maxLen, ' '),
             note:           cell.note.padEnd(maxLen, ' '),
-            underline1:     cell.underline1.padEnd(maxLen, ' '),
-            underline2:     cell.underline2.padEnd(maxLen, ' '),
             octaveDotBelow: cell.octaveDotBelow.padEnd(maxLen, ' '),
             tieSlur:        cell.tieSlur.padEnd(maxLen, ' '),
             lyric:          cell.lyric.padEnd(maxLen, ' '),
@@ -343,7 +356,6 @@ export function MainToolbar() {
         let chordRow = '', accentRow = '', dotAboveRow = '';
         let over1Row = '', over2Row = '';
         let noteRow = '';
-        let under1Row = '', under2Row = '';
         let dotBelowRow = '', tieSlurRow = '', lyricRow = '';
 
         paddedCells.forEach((c) => {
@@ -354,8 +366,6 @@ export function MainToolbar() {
           over1Row     += c.overline1 + sep;
           over2Row     += c.overline2 + sep;
           noteRow      += c.note + sep;
-          under1Row    += c.underline1 + sep;
-          under2Row    += c.underline2 + sep;
           dotBelowRow  += c.octaveDotBelow + sep;
           tieSlurRow   += c.tieSlur + sep;
           lyricRow     += c.lyric + sep;
@@ -364,15 +374,13 @@ export function MainToolbar() {
         const has = (field: keyof AlignedCell) => cells.some((c) => c[field]);
 
         // Output rows top-to-bottom matching editor layer order:
-        // chord → accent → dot above → overlines → NOTE → underlines → dot below → tie/slur → lyric
+        // chord → accent → dot above → overlines → NOTE → dot below → tie/slur → lyric
         if (has('chord'))          resultLines.push(chordRow.trimEnd());
         if (has('accent'))         resultLines.push(accentRow.trimEnd());
         if (has('octaveDotAbove')) resultLines.push(dotAboveRow.trimEnd());
         if (has('overline2'))      resultLines.push(over2Row.trimEnd());
         if (has('overline1'))      resultLines.push(over1Row.trimEnd());
         resultLines.push(noteRow.trimEnd());
-        if (has('underline1'))     resultLines.push(under1Row.trimEnd());
-        if (has('underline2'))     resultLines.push(under2Row.trimEnd());
         if (has('octaveDotBelow')) resultLines.push(dotBelowRow.trimEnd());
         if (has('tieSlur'))        resultLines.push(tieSlurRow.trimEnd());
         if (has('lyric'))          resultLines.push(lyricRow.trimEnd());
@@ -910,6 +918,7 @@ export function MainToolbar() {
         {activeTab === 'notes' && (
           <NotesTab
             onInsert={insertNoteAtSelection}
+            onInsertDot={insertDotAtSelection}
             onOctave={applyOctave}
             onDelete={deleteSelectedNote}
             hasSelection={!!selection}
@@ -962,6 +971,7 @@ export function MainToolbar() {
 // ——— Notes Tab ———
 function NotesTab({
   onInsert,
+  onInsertDot,
   onOctave,
   onDelete,
   hasSelection,
@@ -969,6 +979,7 @@ function NotesTab({
   onToggleInsertMode,
 }: {
   onInsert: (p: NotePitch) => void;
+  onInsertDot: () => void;
   onOctave: (o: NoteOctave) => void;
   onDelete: () => void;
   hasSelection: boolean;
@@ -1029,6 +1040,20 @@ function NotesTab({
           <span className="text-[9px]" style={{ color: 'var(--music-muted)' }}>{labels[i]}</span>
         </button>
       ))}
+
+      {/* Tombol not titik (.) — elemen tersendiri */}
+      <button
+        onClick={onInsertDot}
+        className="note-insert-btn"
+        title={`Titik — perpanjang durasi not sebelumnya${insertMode === 'insert-before' ? ' (sisip sebelum)' : ' (sisip sesudah)'}`}
+        style={{
+          borderColor: 'rgba(148,163,184,0.4)',
+          minWidth: 36,
+        }}
+      >
+        <span className="text-base font-bold font-mono" style={{ opacity: 0.85 }}>.</span>
+        <span className="text-[9px]" style={{ color: 'var(--music-muted)' }}>titik</span>
+      </button>
 
       <div className="w-px h-8 mx-1" style={{ background: 'var(--music-border)' }} />
 
@@ -1101,7 +1126,7 @@ function DurationTab({
   onSetDefault,
   hasSelection,
 }: {
-  onApply: (u: { duration?: NoteDuration; underlines?: 0 | 1 | 2; overlines?: 0 | 1 | 2; dotted?: boolean }) => void;
+  onApply: (u: { duration?: NoteDuration; overlines?: 0 | 1 | 2; dotted?: boolean }) => void;
   defaultDuration: NoteDuration;
   onSetDefault: (dur: NoteDuration) => void;
   hasSelection: boolean;
@@ -1112,13 +1137,10 @@ function DurationTab({
     beats: number;
     title: string;
     overlines: 0|1|2;
-    underlines: 0|1|2;
   }[] = [
-    { label: '4', value: 'whole',     beats: 4,    title: 'Whole (4 ketukan)',       overlines: 2, underlines: 0 },
-    { label: '2', value: 'half',      beats: 2,    title: 'Half (2 ketukan)',         overlines: 1, underlines: 0 },
-    { label: '1', value: 'quarter',   beats: 1,    title: 'Quarter (1 ketukan)',      overlines: 0, underlines: 0 },
-    { label: '½', value: 'eighth',    beats: 0.5,  title: 'Eighth (½ ketukan)',       overlines: 0, underlines: 1 },
-    { label: '¼', value: 'sixteenth', beats: 0.25, title: 'Sixteenth (¼ ketukan)',    overlines: 0, underlines: 2 },
+    { label: '4', value: 'whole',   beats: 4, title: 'Whole (4 ketukan)',   overlines: 2 },
+    { label: '2', value: 'half',    beats: 2, title: 'Half (2 ketukan)',     overlines: 1 },
+    { label: '1', value: 'quarter', beats: 1, title: 'Quarter (1 ketukan)', overlines: 0 },
   ];
 
   return (
@@ -1134,7 +1156,7 @@ function DurationTab({
             onClick={() => {
               onSetDefault(d.value);
               if (hasSelection) {
-                onApply({ duration: d.value, underlines: d.underlines, overlines: d.overlines });
+                onApply({ duration: d.value, overlines: d.overlines });
               }
             }}
             style={{
@@ -1143,16 +1165,12 @@ function DurationTab({
               borderColor: isActive ? 'var(--music-accent)' : undefined,
             }}
           >
-            {/* Visual overlines */}
+            {/* Visual overlines (garis atas) */}
             {Array.from({ length: d.overlines }).map((_, i) => (
               <span key={i} className="block w-4 h-[1.5px] bg-current" />
             ))}
             {/* Pitch number */}
             <span className="font-mono text-sm font-bold">{d.label}</span>
-            {/* Visual underlines */}
-            {Array.from({ length: d.underlines }).map((_, i) => (
-              <span key={i} className="block w-4 h-[1.5px] bg-current" />
-            ))}
           </button>
         );
       })}
