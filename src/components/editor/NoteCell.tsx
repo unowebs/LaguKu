@@ -366,43 +366,89 @@ function SyllableCell({
   fontSize: number;
 }) {
   const { updateSyllable } = useEditorStore();
+  const [isFocused, setIsFocused] = React.useState(false);
+  const spanRef = React.useRef<HTMLSpanElement>(null);
+
+  const hasText = !!syllable && syllable.trim().length > 0;
 
   return (
-    <span
-      contentEditable
-      suppressContentEditableWarning
+    <div
       style={{
-        fontSize,
-        color: isActive ? '#facc15' : 'var(--music-lyric)',
-        fontWeight: isActive ? 600 : 400,
-        outline: 'none',
-        minWidth: 6,
-        textAlign: 'center',
-        lineHeight: 1,
-        padding: '0 1px',
-        borderRadius: 2,
+        width: '92%',
+        height: 20,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 4,
+        padding: '0 2px',
+        transition: 'all 0.15s ease',
+        background: isFocused
+          ? 'rgba(99, 102, 241, 0.22)'
+          : hasText
+          ? 'transparent'
+          : 'rgba(99, 102, 241, 0.08)',
+        border: isFocused
+          ? '1.5px solid #818cf8'
+          : hasText
+          ? '1px solid transparent'
+          : '1px dashed rgba(129, 140, 248, 0.45)',
+        boxShadow: isFocused ? '0 0 8px rgba(99, 102, 241, 0.45)' : 'none',
         cursor: 'text',
-        whiteSpace: 'nowrap',
       }}
-      onFocus={(e) => {
-        // Prevent click-on-lyric from triggering note selection
+      onClick={(e) => {
         e.stopPropagation();
-      }}
-      onClick={(e) => e.stopPropagation()}
-      onBlur={(e) => {
-        const text = e.currentTarget.textContent ?? '';
-        if (text !== syllable) {
-          updateSyllable(lineId, noteIndex, text);
-        }
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          (e.currentTarget as HTMLElement).blur();
-        }
+        spanRef.current?.focus();
       }}
     >
-      {syllable || ''}
-    </span>
+      <span
+        ref={spanRef}
+        contentEditable
+        suppressContentEditableWarning
+        style={{
+          fontSize: hasText || isFocused ? fontSize : Math.max(9, fontSize - 1),
+          color: isFocused
+            ? '#ffffff'
+            : isActive
+            ? '#facc15'
+            : hasText
+            ? 'var(--music-lyric)'
+            : '#818cf8',
+          fontWeight: isFocused || isActive ? 600 : 400,
+          fontStyle: !hasText && !isFocused ? 'italic' : 'normal',
+          outline: 'none',
+          minWidth: 10,
+          textAlign: 'center',
+          lineHeight: 1,
+          whiteSpace: 'nowrap',
+          width: '100%',
+        }}
+        onFocus={(e) => {
+          e.stopPropagation();
+          setIsFocused(true);
+          if (!hasText) {
+            // Clear placeholder text on focus so user can type immediately
+            e.currentTarget.textContent = '';
+          }
+        }}
+        onBlur={(e) => {
+          setIsFocused(false);
+          const text = e.currentTarget.textContent?.trim() ?? '';
+          if (text !== syllable) {
+            updateSyllable(lineId, noteIndex, text);
+          }
+          if (!text) {
+            e.currentTarget.textContent = 'lirik';
+          }
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            (e.currentTarget as HTMLElement).blur();
+          }
+        }}
+      >
+        {syllable || 'lirik'}
+      </span>
+    </div>
   );
 }
