@@ -29,7 +29,7 @@ export const LAYER_H = {
   chord:      18,
   accent:     14,
   octaveHigh:  8,
-  overlines:   8,
+  overlines:  10,
   note:       26,
   octaveLow:   8,
   lyric:      22,
@@ -38,7 +38,7 @@ export const LAYER_H = {
 export const CELL_TOTAL_HEIGHT =
   LAYER_H.chord + LAYER_H.accent + LAYER_H.octaveHigh + LAYER_H.overlines +
   LAYER_H.note  + LAYER_H.octaveLow + LAYER_H.lyric;
-// = 104px
+// = 106px
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -153,7 +153,7 @@ export function NoteCell({
           : null
       )}
 
-      {/* ── Layer 4: Overlines (whole=2, half=1) ──────────────────────────── */}
+      {/* ── Layer 4: Overlines (1 line = setengah ketuk, 2 lines = seperempat ketuk) ── */}
       {layer(LAYER_H.overlines,
         note.overlines > 0 && !note.isRest ? (
           <div style={{
@@ -162,7 +162,7 @@ export function NoteCell({
             width: '100%',
             height: '100%',
             justifyContent: 'flex-end',
-            paddingBottom: 2,
+            paddingBottom: 5,
             gap: 1.5,
           }}>
             {Array.from({ length: note.overlines }).map((_, i) => (

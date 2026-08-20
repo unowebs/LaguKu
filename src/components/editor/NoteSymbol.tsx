@@ -62,7 +62,7 @@ export function NoteSymbol({
         {note.overlines > 0 && Array.from({ length: note.overlines }).map((_, i) => (
           <span
             key={i}
-            className="block h-[1.5px] bg-current mb-[1px]"
+            className="block h-[1.5px] bg-current mb-[4px]"
             style={{ minWidth: '14px', width: '100%' }}
           />
         ))}
