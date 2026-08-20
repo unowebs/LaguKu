@@ -59,7 +59,7 @@ export function NoteSymbol({
         )}
 
         {/* Overlines (garis atas — nilai nada: half=1 garis, whole=2 garis) */}
-        {!note.isDot && note.overlines > 0 && Array.from({ length: note.overlines }).map((_, i) => (
+        {note.overlines > 0 && Array.from({ length: note.overlines }).map((_, i) => (
           <span
             key={i}
             className="block h-[1.5px] bg-current mb-[1px]"

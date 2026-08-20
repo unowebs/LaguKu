@@ -288,13 +288,11 @@ export function MainToolbar() {
         }
 
         // Overlines (1 line = setengah ketuk / eighth, 2 lines = seperempat ketuk / sixteenth)
-        if (!note.isDot) {
-          if (note.overlines >= 1 || note.duration === 'eighth') {
-            cell.overline1 = '-';
-          }
-          if (note.overlines >= 2 || note.duration === 'sixteenth') {
-            cell.overline2 = '-';
-          }
+        if (note.overlines >= 1 || note.duration === 'eighth') {
+          cell.overline1 = '-';
+        }
+        if (note.overlines >= 2 || note.duration === 'sixteenth') {
+          cell.overline2 = '-';
         }
 
         // Tie / Slur

@@ -202,13 +202,13 @@ export const useEditorStore = create<EditorStore>()(
         if (!state.song) return;
         const line = state.song.content.lines.find((l) => l.id === lineId);
         if (line) {
-          // Not titik adalah elemen tersendiri — pitch '0' + isDot=true
-          // Durasi 0 (tidak menambah beat sendiri, hanya perpanjang not sebelumnya)
+          const dur = state.defaultDuration;
+          const overlines = dur === 'eighth' ? 1 : dur === 'sixteenth' ? 2 : 0;
           const dot = createNote('0', '', {
             isDot: true,
             isRest: false,
-            duration: 'quarter',
-            overlines: 0,
+            duration: dur,
+            overlines: overlines as 0|1|2,
           });
           line.notes.splice(noteIndex, 0, dot);
 

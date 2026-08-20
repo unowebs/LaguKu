@@ -85,18 +85,8 @@ export function getDurationInSeconds(note: NoteAngka, bpm: number): number {
  * - 1 overline (garis atas = 1) -> 0.5 beat (½ ketuk)
  * - 2 overlines (garis atas = 2) -> 0.25 beat (¼ ketuk)
  * - 0 overlines -> 1 beat (1 ketuk)
- * Standalone Dot (.):
- * - isDot = true -> 1 beat (1 ketuk)
  */
 export function getNoteDurationInBeats(note: NoteAngka): number {
-  if (note.isDot) {
-    let beats = 1;
-    if (note.overlines === 1) beats = 0.5;
-    else if (note.overlines === 2) beats = 0.25;
-    if (note.dotted) beats *= 1.5;
-    return beats;
-  }
-
   let beats = 1;
   if (note.overlines === 1 || note.duration === 'eighth') {
     beats = 0.5;
