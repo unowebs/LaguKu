@@ -58,14 +58,17 @@ export function NoteSymbol({
           <span className="block w-1 h-1 rounded-full bg-current mb-[1px]" />
         )}
 
-        {/* Overlines (garis atas — nilai nada: half=1 garis, whole=2 garis) */}
-        {note.overlines > 0 && Array.from({ length: note.overlines }).map((_, i) => (
-          <span
-            key={i}
-            className="block h-[1.5px] bg-current mb-[4px]"
-            style={{ minWidth: '14px', width: '100%' }}
-          />
-        ))}
+        {/* Overlines (garis atas — 1/2 ketuk di atas, 1/4 ketuk di bawahnya) */}
+        {note.overlines > 0 && (
+          <div className="flex flex-col items-center w-full mb-[3px] gap-[2px]">
+            {/* Garis 1/2 ketuk (Atas) */}
+            <span className="block h-[1.5px] bg-current w-full" style={{ minWidth: '14px' }} />
+            {/* Garis 1/4 ketuk (Bawah garis 1/2 ketuk) */}
+            {note.overlines >= 2 && (
+              <span className="block h-[1.5px] bg-current w-full" style={{ minWidth: '14px' }} />
+            )}
+          </div>
+        )}
 
         {/* Main note pitch / Dot */}
         <span

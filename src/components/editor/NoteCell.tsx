@@ -153,7 +153,7 @@ export function NoteCell({
           : null
       )}
 
-      {/* ── Layer 4: Overlines (1 line = setengah ketuk, 2 lines = seperempat ketuk) ── */}
+      {/* ── Layer 4: Overlines (1/2 ketuk di atas, 1/4 ketuk di bawahnya) ── */}
       {layer(LAYER_H.overlines,
         note.overlines > 0 && !note.isRest ? (
           <div style={{
@@ -161,19 +161,28 @@ export function NoteCell({
             flexDirection: 'column',
             width: '100%',
             height: '100%',
-            justifyContent: 'flex-end',
-            paddingBottom: 5,
-            gap: 1.5,
+            justifyContent: 'flex-start',
+            paddingTop: 1,
+            gap: 2,
           }}>
-            {Array.from({ length: note.overlines }).map((_, i) => (
-              <div key={i} style={{
+            {/* Garis 1/2 ketuk (Atas) */}
+            <div style={{
+              display: 'block',
+              width: '100%',
+              height: 1.5,
+              background: 'currentColor',
+              flexShrink: 0,
+            }} />
+            {/* Garis 1/4 ketuk (Bawah garis 1/2 ketuk) */}
+            {note.overlines >= 2 && (
+              <div style={{
                 display: 'block',
                 width: '100%',
                 height: 1.5,
                 background: 'currentColor',
                 flexShrink: 0,
               }} />
-            ))}
+            )}
           </div>
         ) : null
       )}
@@ -382,16 +391,8 @@ function SyllableCell({
         borderRadius: 4,
         padding: '0 2px',
         transition: 'all 0.15s ease',
-        background: isFocused
-          ? 'rgba(99, 102, 241, 0.22)'
-          : hasText
-          ? 'transparent'
-          : 'rgba(99, 102, 241, 0.08)',
-        border: isFocused
-          ? '1.5px solid #818cf8'
-          : hasText
-          ? '1px solid transparent'
-          : '1px dashed rgba(129, 140, 248, 0.25)',
+        background: isFocused ? 'rgba(99, 102, 241, 0.22)' : 'transparent',
+        border: isFocused ? '1.5px solid #818cf8' : '1px solid transparent',
         boxShadow: isFocused ? '0 0 8px rgba(99, 102, 241, 0.45)' : 'none',
         cursor: 'text',
       }}
