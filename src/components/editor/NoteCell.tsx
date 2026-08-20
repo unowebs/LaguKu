@@ -155,7 +155,7 @@ export function NoteCell({
 
       {/* ── Layer 4: Overlines (1/2 ketuk di atas, 1/4 ketuk di bawahnya) ── */}
       {layer(LAYER_H.overlines,
-        note.overlines > 0 && !note.isRest ? (
+        note.overlines > 0 ? (
           <div style={{
             display: 'flex',
             flexDirection: 'column',
