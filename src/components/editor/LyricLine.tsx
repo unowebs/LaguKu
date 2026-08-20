@@ -285,9 +285,9 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
               <BarLineCell type="warning" warning tooltip={getWarningTooltip(measure)} />
             ) : measure.endBarType ? (
               <BarLineCell type={measure.endBarType} />
-            ) : (
+            ) : measure.isComplete ? (
               <BarLineCell type="single" />
-            )}
+            ) : null}
           </React.Fragment>
         ))}
 

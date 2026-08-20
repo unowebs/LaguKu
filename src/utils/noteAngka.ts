@@ -74,40 +74,40 @@ export function noteToFrequency(note: NoteAngka, key: MusicalKey): number | null
 // ===========================
 
 export function getDurationInSeconds(note: NoteAngka, bpm: number): number {
-  const beatDuration = 60 / bpm; // quarter note duration
-  const baseDurations: Record<string, number> = {
-    whole: beatDuration * 4,
-    half: beatDuration * 2,
-    quarter: beatDuration,
-    eighth: beatDuration / 2,
-    sixteenth: beatDuration / 4,
-  };
-
-  let duration = baseDurations[note.duration] ?? beatDuration;
-
-  // Overlines: each overline doubles duration (quarter → half → whole)
-  for (let i = 0; i < note.overlines; i++) duration *= 2;
-
-  if (note.dotted) duration *= 1.5;
-
-  return duration;
+  const beatDuration = 60 / bpm; // quarter note duration in seconds (1 beat)
+  const beats = getNoteDurationInBeats(note);
+  return beatDuration * beats;
 }
 
 /**
- * Returns the duration of a note in beats (quarter note = 1 beat).
- * Takes duration field as source of truth; underlines/overlines are visual
- * representations of the duration field but are NOT double-counted here.
+ * Returns the duration of a note in beats (1 beat = 1 ketuk / quarter note).
+ * Overlines (garis di atas):
+ * - 1 overline (garis atas = 1) -> 0.5 beat (½ ketuk)
+ * - 2 overlines (garis atas = 2) -> 0.25 beat (¼ ketuk)
+ * - 0 overlines -> 1 beat (1 ketuk)
+ * Standalone Dot (.):
+ * - isDot = true -> 1 beat (1 ketuk)
  */
 export function getNoteDurationInBeats(note: NoteAngka): number {
-  const baseDurations: Record<string, number> = {
-    whole:     4,
-    half:      2,
-    quarter:   1,
-    eighth:    0.5,
-    sixteenth: 0.25,
-  };
+  if (note.isDot) {
+    let beats = 1;
+    if (note.overlines === 1) beats = 0.5;
+    else if (note.overlines === 2) beats = 0.25;
+    if (note.dotted) beats *= 1.5;
+    return beats;
+  }
 
-  let beats = baseDurations[note.duration] ?? 1;
+  let beats = 1;
+  if (note.overlines === 1 || note.duration === 'eighth') {
+    beats = 0.5;
+  } else if (note.overlines === 2 || note.duration === 'sixteenth') {
+    beats = 0.25;
+  } else if (note.duration === 'half') {
+    beats = 2;
+  } else if (note.duration === 'whole') {
+    beats = 4;
+  }
+
   if (note.dotted) beats *= 1.5;
 
   return beats;

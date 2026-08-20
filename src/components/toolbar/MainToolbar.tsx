@@ -287,12 +287,12 @@ export function MainToolbar() {
           if (note.octave === 'low') cell.octaveDotBelow = '.';
         }
 
-        // Overlines (half=1 garis, whole=2 garis) — skip for dot notes
+        // Overlines (1 line = setengah ketuk / eighth, 2 lines = seperempat ketuk / sixteenth)
         if (!note.isDot) {
-          if (note.overlines >= 1 || note.duration === 'half' || note.duration === 'whole') {
+          if (note.overlines >= 1 || note.duration === 'eighth') {
             cell.overline1 = '-';
           }
-          if (note.overlines >= 2 || note.duration === 'whole') {
+          if (note.overlines >= 2 || note.duration === 'sixteenth') {
             cell.overline2 = '-';
           }
         }
@@ -1138,9 +1138,9 @@ function DurationTab({
     title: string;
     overlines: 0|1|2;
   }[] = [
-    { label: '4', value: 'whole',   beats: 4, title: 'Whole (4 ketukan)',   overlines: 2 },
-    { label: '2', value: 'half',    beats: 2, title: 'Half (2 ketukan)',     overlines: 1 },
-    { label: '1', value: 'quarter', beats: 1, title: 'Quarter (1 ketukan)', overlines: 0 },
+    { label: '1', value: 'quarter',   beats: 1,    title: '1 Ketuk (Tanpa garis atas)',   overlines: 0 },
+    { label: '½', value: 'eighth',    beats: 0.5,  title: '½ Ketuk (1 garis atas)',       overlines: 1 },
+    { label: '¼', value: 'sixteenth', beats: 0.25, title: '¼ Ketuk (2 garis atas)',       overlines: 2 },
   ];
 
   return (
