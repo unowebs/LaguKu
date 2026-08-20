@@ -129,16 +129,26 @@ export function usePlayer() {
         playDurationMap.set(i, dur);
       }
 
-      // Resolve tie chains
+      // Resolve dot chains & tie chains
       for (let i = 0; i < notes.length; i++) {
+        if (skipSoundMap.get(i)) continue;
+
         const note = notes[i];
-        if (note.tied && !note.isRest && note.pitch !== '0') {
-          // Find the tie chain
-          let chainDuration = playDurationMap.get(i) || 0;
-          let nextIdx = i + 1;
+        let chainDuration = playDurationMap.get(i) || getDurationInSeconds(note, bpm);
+        let nextIdx = i + 1;
+
+        // 1. Accumulate duration for consecutive dot notes (.) following this note
+        while (nextIdx < notes.length && notes[nextIdx].isDot) {
+          chainDuration += getDurationInSeconds(notes[nextIdx], bpm);
+          skipSoundMap.set(nextIdx, true);
+          nextIdx++;
+        }
+
+        // 2. Accumulate duration for tie chains
+        if (note.tied && !note.isRest && !note.isDot && note.pitch !== '0') {
           while (nextIdx < notes.length) {
             const nextNote = notes[nextIdx];
-            if (nextNote.pitch === note.pitch && !nextNote.isRest) {
+            if (nextNote.pitch === note.pitch && !nextNote.isRest && !nextNote.isDot) {
               chainDuration += getDurationInSeconds(nextNote, bpm);
               skipSoundMap.set(nextIdx, true);
               if (nextNote.tied) {
@@ -150,8 +160,9 @@ export function usePlayer() {
               break;
             }
           }
-          playDurationMap.set(i, chainDuration);
         }
+
+        playDurationMap.set(i, chainDuration);
       }
 
       notes.forEach((note, noteIdx) => {
