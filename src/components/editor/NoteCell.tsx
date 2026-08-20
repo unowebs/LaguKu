@@ -391,7 +391,7 @@ function SyllableCell({
           ? '1.5px solid #818cf8'
           : hasText
           ? '1px solid transparent'
-          : '1px dashed rgba(129, 140, 248, 0.45)',
+          : '1px dashed rgba(129, 140, 248, 0.25)',
         boxShadow: isFocused ? '0 0 8px rgba(99, 102, 241, 0.45)' : 'none',
         cursor: 'text',
       }}
@@ -437,7 +437,7 @@ function SyllableCell({
             updateSyllable(lineId, noteIndex, text);
           }
           if (!text) {
-            e.currentTarget.textContent = 'lirik';
+            e.currentTarget.textContent = '';
           }
         }}
         onKeyDown={(e) => {
@@ -447,7 +447,7 @@ function SyllableCell({
           }
         }}
       >
-        {syllable || 'lirik'}
+        {syllable || ''}
       </span>
     </div>
   );

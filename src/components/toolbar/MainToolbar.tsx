@@ -255,9 +255,9 @@ export function MainToolbar() {
 
       const cells: AlignedCell[] = [];
 
-      // Initial double bar line
+      // Initial single bar line
       if (line.notes.length > 0) {
-        cells.push(barCell('||'));
+        cells.push(barCell('|'));
       }
 
       let cumulativeBeats = 0;

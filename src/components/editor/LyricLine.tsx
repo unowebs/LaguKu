@@ -211,8 +211,8 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
         rowGap: 8,
       }}>
 
-        {/* ‖ start-of-line double bar */}
-        <BarLineCell type="double" />
+        {/* | start-of-line single bar */}
+        <BarLineCell type="single" />
 
         {/* Measures */}
         {measures.map((measure, mi) => (
