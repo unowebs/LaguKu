@@ -204,14 +204,15 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
       )}
 
       {/* ── Note grid row ──────────────────────────────────────────────────── */}
-      {/* paddingLeft: 18 compensates for the -18 marginLeft on measures 2+,   */}
-      {/* so that when a measure wraps to a new row it aligns with row 1.       */}
+      {/* paddingLeft: BAR_WIDTH (18) + marginLeft: -BAR_WIDTH on ALL measures   */}
+      {/* ensures every visual row (including wrapped rows) starts at the same   */}
+      {/* horizontal position as row 1. Adjacent bars overlap on the same row.   */}
       <div style={{
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'flex-start',
         rowGap: 8,
-        paddingLeft: 0,
+        paddingLeft: 18,
       }}>
 
         {/* Measures */}
@@ -236,22 +237,23 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
           const isEndBarSelected = selection?.lineId === line.id && selection?.barPosition === endNoteIdx;
 
           // BAR_WIDTH must match BarLineCell width (18px).
-          // Measures 2+ are shifted left by BAR_WIDTH so their start bar overlaps
-          // the preceding measure's end bar when on the same visual row.
-          // When a measure wraps to a new row, the start bar is naturally visible.
+          // ALL measures (including mi=0) have marginLeft: -BAR_WIDTH.
+          // Container paddingLeft: BAR_WIDTH compensates, so every row
+          // (and every wrapped row) starts at the same left position.
           const BAR_WIDTH = 18;
 
           return (
             <React.Fragment key={mi}>
               {/* Atomic measure block: [start-bar][notes][end-bar]
-                  marginLeft: -BAR_WIDTH overlaps adjacent bar lines on same row.
-                  On wrap, the start bar appears at the start of the new visual row. */}
+                  marginLeft: -BAR_WIDTH applied to ALL measures so that:
+                  - Same row: start bar overlaps previous end bar (looks like one bar) ✓
+                  - Wrapped row: paddingLeft(18) - marginLeft(-18) = 0 → aligns with row 1 ✓ */}
               <div style={{
                 display: 'flex',
                 flexWrap: 'nowrap',
                 alignItems: 'flex-start',
                 position: 'relative',
-                marginLeft: mi > 0 ? -BAR_WIDTH : 0,
+                marginLeft: -BAR_WIDTH,
               }}>
                 {/* Start bar line */}
                 <BarLineCell
