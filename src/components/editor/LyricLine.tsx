@@ -227,14 +227,18 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
           const startManualBar = startManualBarIdx >= 0 ? line.barTypes[startManualBarIdx] : null;
           const startBarType = mi === 0 ? (line.startBarType ?? 'single') : (startManualBar?.type ?? 'single');
           const isStartBarSelected = selection?.lineId === line.id && (
-            mi === 0 ? !!selection?.isStartBar : selection?.barPosition === startNoteIdx
+            mi === 0
+              ? !!selection?.isStartBar
+              : selection?.barPosition === startNoteIdx && (selection?.barSide === 'start' || !selection?.barSide)
           );
 
           // End bar
           const endManualBarIdx = line.barPositions ? line.barPositions.indexOf(endNoteIdx) : -1;
           const endManualBar = endManualBarIdx >= 0 ? line.barTypes[endManualBarIdx] : null;
           const endBarType = measure.isOverflow ? 'warning' : (endManualBar?.type ?? (measure.endBarType ?? 'single'));
-          const isEndBarSelected = selection?.lineId === line.id && selection?.barPosition === endNoteIdx;
+          const isEndBarSelected = selection?.lineId === line.id && (
+            selection?.barPosition === endNoteIdx && (selection?.barSide === 'end' || !selection?.barSide)
+          );
 
           // BAR_WIDTH must match BarLineCell width (18px).
           // ALL measures (including mi=0) have marginLeft: -BAR_WIDTH.
@@ -266,7 +270,7 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
                       setSelection({ lineId: line.id, isStartBar: true });
                     } else {
                       useEditorStore.getState().insertBarLine(line.id, startNoteIdx, startManualBar?.type ?? 'single');
-                      setSelection({ lineId: line.id, barPosition: startNoteIdx });
+                      setSelection({ lineId: line.id, barPosition: startNoteIdx, barSide: 'start' });
                     }
                   }}
                 />
@@ -358,7 +362,7 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
                   repeatLabel={endManualBar?.repeatLabel}
                   onClick={() => {
                     useEditorStore.getState().insertBarLine(line.id, endNoteIdx, endManualBar?.type ?? 'single');
-                    setSelection({ lineId: line.id, barPosition: endNoteIdx });
+                    setSelection({ lineId: line.id, barPosition: endNoteIdx, barSide: 'end' });
                   }}
                 />
               </div>

@@ -1336,6 +1336,7 @@ function SymbolsTab({
                   updateStartBarType(selection.lineId, t as any);
                 } else if (selection.barPosition !== undefined) {
                   useEditorStore.getState().insertBarLine(selection.lineId, selection.barPosition, t as any);
+                  useEditorStore.getState().setSelection({ lineId: selection.lineId, barPosition: selection.barPosition, barSide: selection.barSide });
                 }
               }}
             >

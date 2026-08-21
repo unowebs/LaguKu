@@ -101,6 +101,7 @@ export interface EditorSelection {
   noteIndexEnd?: number;
   barPosition?: number;      // index where bar line sits
   isStartBar?: boolean;      // true if start-of-line bar line is selected
+  barSide?: 'start' | 'end'; // 'start' for start-of-measure bar line, 'end' for end-of-measure bar line
 }
 
 export interface EditorState {
