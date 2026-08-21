@@ -75,8 +75,8 @@ export function NoteSymbol({
             <span
               className="block h-[2px] bg-current rounded-sm"
               style={{
-                marginLeft: !hasLeft1 ? '20%' : 0,
-                marginRight: !hasRight1 ? '20%' : 0,
+                marginLeft: !hasLeft1 ? '30%' : 0,
+                marginRight: !hasRight1 ? '30%' : 0,
               }}
             />
             {/* Garis 1/4 ketuk (Bawah garis 1/2 ketuk) */}
@@ -84,8 +84,8 @@ export function NoteSymbol({
               <span
                 className="block h-[2px] bg-current rounded-sm"
                 style={{
-                  marginLeft: !hasLeft2 ? '20%' : 0,
-                  marginRight: !hasRight2 ? '20%' : 0,
+                  marginLeft: !hasLeft2 ? '30%' : 0,
+                  marginRight: !hasRight2 ? '30%' : 0,
                 }}
               />
             )}

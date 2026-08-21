@@ -184,8 +184,8 @@ export function NoteCell({
               height: 2,
               background: 'currentColor',
               flexShrink: 0,
-              marginLeft: !hasLeft1 ? '20%' : 0,
-              marginRight: !hasRight1 ? '20%' : 0,
+              marginLeft: !hasLeft1 ? '30%' : 0,
+              marginRight: !hasRight1 ? '30%' : 0,
               borderRadius: 1,
             }} />
             {/* Garis 1/4 ketuk (Bawah garis 1/2 ketuk) */}
@@ -195,8 +195,8 @@ export function NoteCell({
                 height: 2,
                 background: 'currentColor',
                 flexShrink: 0,
-                marginLeft: !hasLeft2 ? '20%' : 0,
-                marginRight: !hasRight2 ? '20%' : 0,
+                marginLeft: !hasLeft2 ? '30%' : 0,
+                marginRight: !hasRight2 ? '30%' : 0,
                 borderRadius: 1,
               }} />
             )}
