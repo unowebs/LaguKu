@@ -1231,13 +1231,35 @@ function DurationTab({
         disabled={!hasSelection}
         style={{ opacity: hasSelection ? 1 : 0.4 }}
       >
-        <span className="font-mono text-sm font-bold">1</span>
+        <span className="font-mono text-sm font-bold">1.</span>
         <span className="text-[10px]" style={{ color: 'var(--music-muted)' }}>titik</span>
       </button>
 
-      <div className="text-[10px] ml-2" style={{ color: 'var(--music-muted)' }}>
-        {hasSelection ? 'Klik untuk ubah not terpilih' : `Default: ${defaultDuration}`}
-      </div>
+      <div className="w-px h-8 mx-1" style={{ background: 'var(--music-border)' }} />
+
+      {/* Sharp / Coret Kanan / (Naik 1/2 nada) */}
+      <button
+        className="toolbar-icon-btn flex flex-col items-center min-w-[44px] py-1"
+        title="Sharp / Coret Kanan / (Naik ½ nada)"
+        onClick={() => hasSelection && onApply({ accidental: 'sharp' })}
+        disabled={!hasSelection}
+        style={{ opacity: hasSelection ? 1 : 0.4 }}
+      >
+        <span className="font-mono text-sm font-bold">1/</span>
+        <span className="text-[10px]" style={{ color: 'var(--music-muted)' }}>coret /</span>
+      </button>
+
+      {/* Flat / Coret Kiri \ (Turun 1/2 nada) */}
+      <button
+        className="toolbar-icon-btn flex flex-col items-center min-w-[44px] py-1"
+        title="Flat / Coret Kiri \ (Turun ½ nada)"
+        onClick={() => hasSelection && onApply({ accidental: 'flat' })}
+        disabled={!hasSelection}
+        style={{ opacity: hasSelection ? 1 : 0.4 }}
+      >
+        <span className="font-mono text-sm font-bold">\1</span>
+        <span className="text-[10px]" style={{ color: 'var(--music-muted)' }}>coret \</span>
+      </button>
     </div>
   );
 }
@@ -1267,6 +1289,8 @@ function SymbolsTab({
   const isBarSelected = !!selection && (selection.barPosition !== undefined || !!selection.isStartBar);
 
   const symbols = [
+    { label: '1/', title: 'Sharp (Coret Kanan / - Naik ½ Nada)', active: selectedNote?.accidental === 'sharp', action: () => onApply({ accidental: selectedNote?.accidental === 'sharp' ? undefined : 'sharp' }), requiresSelection: true },
+    { label: '\\1', title: 'Flat (Coret Kiri \\ - Turun ½ Nada)', active: selectedNote?.accidental === 'flat', action: () => onApply({ accidental: selectedNote?.accidental === 'flat' ? undefined : 'flat' }), requiresSelection: true },
     { label: '⌒', title: 'Tie (Sambung)', active: !!selectedNote?.tied, action: () => onToggleProp('tied'), requiresSelection: true },
     { label: '⌣', title: 'Slur (Legato)', active: !!selectedNote?.slurred, action: () => onToggleProp('slurred'), requiresSelection: true },
     { label: '·', title: 'Staccato', active: !!selectedNote?.staccato, action: () => onToggleProp('staccato'), requiresSelection: true },

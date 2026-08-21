@@ -105,6 +105,29 @@ export default function EditorPage() {
             isRest: e.key === '0',
           });
           toast.success(`Not diubah ke ${e.key === '0' ? 'Rest (0)' : e.key}`, { id: 'change-note' });
+          return;
+        }
+
+        // Toggle Sharp / Coret Kanan /
+        if (e.key === '/' || e.key === '#') {
+          e.preventDefault();
+          const line = song?.content.lines.find((l) => l.id === selection.lineId);
+          const currentNote = line?.notes[selection.noteIndex];
+          const newAcc = currentNote?.accidental === 'sharp' ? undefined : 'sharp';
+          updateNote(selection.lineId, selection.noteIndex, { accidental: newAcc });
+          toast.success(newAcc === 'sharp' ? 'Coret kanan (Sharp / Naik ½) dipasang' : 'Coret kanan (Sharp) dihapus', { id: 'change-accidental' });
+          return;
+        }
+
+        // Toggle Flat / Coret Kiri \
+        if (e.key === '\\' || e.key === 'b') {
+          e.preventDefault();
+          const line = song?.content.lines.find((l) => l.id === selection.lineId);
+          const currentNote = line?.notes[selection.noteIndex];
+          const newAcc = currentNote?.accidental === 'flat' ? undefined : 'flat';
+          updateNote(selection.lineId, selection.noteIndex, { accidental: newAcc });
+          toast.success(newAcc === 'flat' ? 'Coret kiri (Flat / Turun ½) dipasang' : 'Coret kiri (Flat) dihapus', { id: 'change-accidental' });
+          return;
         }
       }
     }
