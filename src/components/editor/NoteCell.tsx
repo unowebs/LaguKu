@@ -241,13 +241,13 @@ export function NoteCell({
             paddingBottom: 6,
             position: 'relative',
           }}>
-            {/* Accidental Coret Kiri / (Sharp: Naik 1/2 nada) — tampil sebelum angka */}
+            {/* Accidental Coret Kiri / (Sharp: Naik 1/2 nada) — tampil di tengah angka */}
             {note.accidental === 'sharp' && !note.isRest && (
               <span style={{
                 position: 'absolute',
                 top: '50%',
-                left: '-2px',
-                transform: 'translateY(-55%)',
+                left: '50%',
+                transform: 'translate(-50%, -55%)',
                 fontSize: noteFontSize * 1.1,
                 fontWeight: 300,
                 lineHeight: 1,
@@ -260,13 +260,13 @@ export function NoteCell({
               </span>
             )}
 
-            {/* Accidental Coret Kiri \ (Flat: Turun 1/2 nada) — tampil sebelum angka */}
+            {/* Accidental Coret Kiri \ (Flat: Turun 1/2 nada) — tampil di tengah angka */}
             {note.accidental === 'flat' && !note.isRest && (
               <span style={{
                 position: 'absolute',
                 top: '50%',
-                left: '-3px',
-                transform: 'translateY(-55%)',
+                left: '50%',
+                transform: 'translate(-50%, -55%)',
                 fontSize: noteFontSize * 1.1,
                 fontWeight: 300,
                 lineHeight: 1,
