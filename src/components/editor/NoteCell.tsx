@@ -241,6 +241,44 @@ export function NoteCell({
             paddingBottom: 6,
             position: 'relative',
           }}>
+            {/* Accidental Coret Kiri / (Sharp: Naik 1/2 nada) — tampil sebelum angka */}
+            {note.accidental === 'sharp' && !note.isRest && (
+              <span style={{
+                position: 'absolute',
+                top: '50%',
+                left: '-2px',
+                transform: 'translateY(-55%)',
+                fontSize: noteFontSize * 1.1,
+                fontWeight: 300,
+                lineHeight: 1,
+                fontFamily: "'JetBrains Mono', 'Inter', 'Courier New', monospace",
+                pointerEvents: 'none',
+                zIndex: 3,
+                letterSpacing: '-0.05em',
+              }}>
+                /
+              </span>
+            )}
+
+            {/* Accidental Coret Kiri \ (Flat: Turun 1/2 nada) — tampil sebelum angka */}
+            {note.accidental === 'flat' && !note.isRest && (
+              <span style={{
+                position: 'absolute',
+                top: '50%',
+                left: '-3px',
+                transform: 'translateY(-55%)',
+                fontSize: noteFontSize * 1.1,
+                fontWeight: 300,
+                lineHeight: 1,
+                fontFamily: "'JetBrains Mono', 'Inter', 'Courier New', monospace",
+                pointerEvents: 'none',
+                zIndex: 3,
+                letterSpacing: '-0.05em',
+              }}>
+                \
+              </span>
+            )}
+
             <span>{note.isRest ? '0' : note.pitch}</span>
             {note.dotted && (
               <span style={{
@@ -250,44 +288,6 @@ export function NoteCell({
               }}>
                 .
               </span>
-            )}
-
-            {/* Accidental Coret Kanan / (Sharp: Naik 1/2 nada) */}
-            {note.accidental === 'sharp' && !note.isRest && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '40%',
-                  left: '50%',
-                  width: '80%',
-                  height: 2.2,
-                  background: 'currentColor',
-                  transform: 'translate(-50%, -50%) rotate(-45deg)',
-                  transformOrigin: 'center',
-                  pointerEvents: 'none',
-                  borderRadius: 1,
-                  zIndex: 2,
-                }}
-              />
-            )}
-
-            {/* Accidental Coret Kiri \ (Flat: Turun 1/2 nada) */}
-            {note.accidental === 'flat' && !note.isRest && (
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '40%',
-                  left: '50%',
-                  width: '80%',
-                  height: 2.2,
-                  background: 'currentColor',
-                  transform: 'translate(-50%, -50%) rotate(45deg)',
-                  transformOrigin: 'center',
-                  pointerEvents: 'none',
-                  borderRadius: 1,
-                  zIndex: 2,
-                }}
-              />
             )}
           </div>
         )
