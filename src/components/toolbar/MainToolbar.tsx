@@ -1093,6 +1093,45 @@ function NotesTab({
 
       <div className="w-px h-8 mx-1" style={{ background: 'var(--music-border)' }} />
 
+      {/* Accidental / Coret — hanya aktif jika ada selection */}
+      <div className="w-px h-8 mx-1" style={{ background: 'var(--music-border)' }} />
+      <span className="text-xs mr-1" style={{ color: 'var(--music-muted)' }}>Coret:</span>
+      <button
+        className="toolbar-icon-btn"
+        title="Coret Kanan / (Sharp: Naik 1/2 nada)"
+        onClick={() => onApply({ accidental: 'sharp' })}
+        disabled={!hasSelection}
+        style={{
+          opacity: hasSelection ? 1 : 0.4,
+          borderColor: 'rgba(99,102,241,0.4)',
+        }}
+      >
+        <span className="font-mono text-sm font-bold">1̸</span>
+      </button>
+      <button
+        className="toolbar-icon-btn"
+        title="Coret Kiri \ (Flat: Turun 1/2 nada)"
+        onClick={() => onApply({ accidental: 'flat' })}
+        disabled={!hasSelection}
+        style={{
+          opacity: hasSelection ? 1 : 0.4,
+          borderColor: 'rgba(99,102,241,0.4)',
+        }}
+      >
+        <span className="font-mono text-sm font-bold">1\</span>
+      </button>
+      <button
+        className="toolbar-icon-btn"
+        title="Hapus Coret (Nada Normal)"
+        onClick={() => onApply({ accidental: undefined })}
+        disabled={!hasSelection}
+        style={{ opacity: hasSelection ? 1 : 0.4 }}
+      >
+        <span className="font-mono text-xs font-bold">1</span>
+      </button>
+
+      <div className="w-px h-8 mx-1" style={{ background: 'var(--music-border)' }} />
+
       {/* Hapus Not — hanya aktif jika ada selection */}
       <button
         className="toolbar-icon-btn"
@@ -1110,7 +1149,7 @@ function NotesTab({
 
       {!hasSelection && (
         <span className="text-[10px] ml-2" style={{ color: 'var(--music-muted)' }}>
-          Klik not untuk pilih
+          Klik not atau garis birama untuk pilih & ubah
         </span>
       )}
     </div>
@@ -1210,6 +1249,14 @@ function SymbolsTab({
   selectedNote: NoteAngka | null;
   hasSelection: boolean;
 }) {
+  const { selection, song, updateBarLineMeta, updateStartBarType, removeBarLine } = useEditorStore();
+
+  const selectedLine = selection ? song?.content.lines.find((l) => l.id === selection.lineId) : null;
+  const barIdx = selectedLine && selection?.barPosition !== undefined ? selectedLine.barPositions.indexOf(selection.barPosition) : -1;
+  const currentBar = barIdx >= 0 && selectedLine ? selectedLine.barTypes[barIdx] : null;
+
+  const isBarSelected = !!selection && (selection.barPosition !== undefined || !!selection.isStartBar);
+
   const symbols = [
     { label: '⌒', title: 'Tie (Sambung)', active: !!selectedNote?.tied, action: () => onToggleProp('tied'), requiresSelection: true },
     { label: '⌣', title: 'Slur (Legato)', active: !!selectedNote?.slurred, action: () => onToggleProp('slurred'), requiresSelection: true },
@@ -1226,38 +1273,131 @@ function SymbolsTab({
 
   return (
     <div className="flex items-center gap-1 flex-wrap">
-      <span className="text-xs mr-1" style={{ color: 'var(--music-muted)' }}>Simbol:</span>
-      {symbols.map((sym) => {
-        const disabled = sym.requiresSelection && !hasSelection;
-        return (
-          <button
-            key={sym.title}
-            className="toolbar-icon-btn min-w-[36px]"
-            title={sym.title}
-            onClick={sym.action}
-            disabled={disabled}
-            style={{
-              opacity: disabled ? 0.4 : 1,
-              background: sym.active ? 'rgba(99,102,241,0.15)' : undefined,
-              color: sym.active ? 'var(--music-accent)' : undefined,
-              borderColor: sym.active ? 'var(--music-accent)' : undefined,
-            }}
-          >
-            <span className="text-sm font-mono">{sym.label}</span>
-          </button>
-        );
-      })}
-      {!hasSelection && (
-        <span className="text-[10px] ml-2" style={{ color: 'var(--music-muted)' }}>
-          Klik not untuk mengaktifkan simbol
-        </span>
-      )}
+      {/* If a Bar Line is selected, show Bar Line Editing controls */}
+      {isBarSelected && selection ? (
+        <div className="flex items-center gap-2 bg-indigo-500/10 px-3 py-1 rounded-lg border border-indigo-500/30">
+          <span className="text-xs font-semibold text-indigo-400">Garis Birama Terpilih:</span>
 
-      {/* Chord input */}
-      {hasSelection && (
+          {['single', 'double', 'repeat-start', 'repeat-end', 'final'].map((t) => (
+            <button
+              key={t}
+              className="toolbar-icon-btn min-w-[32px] text-sm font-mono font-bold"
+              style={{
+                borderColor: (selection.isStartBar ? selectedLine?.startBarType === t : currentBar?.type === t) ? 'var(--music-accent)' : undefined,
+                background: (selection.isStartBar ? selectedLine?.startBarType === t : currentBar?.type === t) ? 'rgba(99,102,241,0.2)' : undefined,
+              }}
+              onClick={() => {
+                if (selection.isStartBar) {
+                  updateStartBarType(selection.lineId, t as any);
+                } else if (selection.barPosition !== undefined) {
+                  useEditorStore.getState().insertBarLine(selection.lineId, selection.barPosition, t as any);
+                }
+              }}
+            >
+              {t === 'single' ? '|' : t === 'double' ? '‖' : t === 'repeat-start' ? '𝄆' : t === 'repeat-end' ? '𝄇' : '𝄂'}
+            </button>
+          ))}
+
+          {/* Repeat count & label controls if repeat bar */}
+          {(currentBar?.type === 'repeat-start' || currentBar?.type === 'repeat-end') && selection.barPosition !== undefined && (
+            <>
+              <div className="w-px h-6 mx-1 bg-white/10" />
+              <span className="text-xs text-muted-foreground">Ulang:</span>
+              <select
+                className="toolbar-select text-xs"
+                value={currentBar.repeatCount ?? 1}
+                onChange={(e) => updateBarLineMeta(selection.lineId, selection.barPosition!, { repeatCount: parseInt(e.target.value) })}
+              >
+                {[1, 2, 3, 4, 5].map((c) => (
+                  <option key={c} value={c}>{c}x</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="Keterangan (mis: Chorus)…"
+                defaultValue={currentBar.repeatLabel ?? ''}
+                className="w-32 px-2 py-0.5 text-xs rounded bg-surface-2 border border-music-border text-music-text"
+                onBlur={(e) => updateBarLineMeta(selection.lineId, selection.barPosition!, { repeatLabel: e.target.value.trim() || undefined })}
+              />
+            </>
+          )}
+
+          {!selection.isStartBar && selection.barPosition !== undefined && (
+            <button
+              className="toolbar-icon-btn text-red-400 border-red-500/30"
+              title="Hapus Garis Birama"
+              onClick={() => {
+                removeBarLine(selection.lineId, selection.barPosition!);
+                useEditorStore.getState().setSelection(null);
+              }}
+            >
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
+      ) : (
         <>
-          <div className="w-px h-8 mx-2" style={{ background: 'var(--music-border)' }} />
-          <span className="text-xs mr-1" style={{ color: 'var(--music-muted)' }}>Akord:</span>
+          <span className="text-xs mr-1" style={{ color: 'var(--music-muted)' }}>Simbol:</span>
+          {symbols.map((sym) => {
+            const disabled = sym.requiresSelection && !hasSelection;
+            return (
+              <button
+                key={sym.title}
+                className="toolbar-icon-btn min-w-[36px]"
+                title={sym.title}
+                onClick={sym.action}
+                disabled={disabled}
+                style={{
+                  opacity: disabled ? 0.4 : 1,
+                  background: sym.active ? 'rgba(99,102,241,0.15)' : undefined,
+                  color: sym.active ? 'var(--music-accent)' : undefined,
+                  borderColor: sym.active ? 'var(--music-accent)' : undefined,
+                }}
+              >
+                <span className="text-sm font-mono">{sym.label}</span>
+              </button>
+            );
+          })}
+          {!hasSelection && (
+            <span className="text-[10px] ml-2" style={{ color: 'var(--music-muted)' }}>
+              Klik not atau garis birama untuk pilih
+            </span>
+          )}
+
+          {/* Chord input */}
+          {hasSelection && (
+            <>
+              <div className="w-px h-8 mx-2" style={{ background: 'var(--music-border)' }} />
+              <span className="text-xs mr-1" style={{ color: 'var(--music-muted)' }}>Akord:</span>
+              <input
+                type="text"
+                placeholder="Am, G7…"
+                defaultValue={selectedNote?.chord ?? ''}
+                className="w-16 px-2 py-0.5 text-xs rounded"
+                style={{
+                  background: 'var(--music-surface-2)',
+                  border: '1px solid var(--music-border)',
+                  color: 'var(--music-chord)',
+                  outline: 'none',
+                  fontWeight: 700,
+                }}
+                onBlur={(e) => {
+                  const val = e.target.value.trim();
+                  onApply({ chord: val || undefined } as Partial<NoteAngka>);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    (e.target as HTMLInputElement).blur();
+                  }
+                }}
+              />
+            </>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
           <input
             type="text"
             placeholder="Am, G7…"

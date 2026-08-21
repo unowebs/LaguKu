@@ -211,90 +211,114 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
         rowGap: 8,
       }}>
 
-        {/* | start-of-line single bar */}
-        <BarLineCell type="single" />
+        {/* | start-of-line bar line (clickable & customizable) */}
+        <BarLineCell
+          type={line.startBarType ?? 'single'}
+          isSelected={selection?.lineId === line.id && !!selection?.isStartBar}
+          onClick={() => setSelection({ lineId: line.id, isStartBar: true })}
+        />
 
         {/* Measures */}
-        {measures.map((measure, mi) => (
-          <React.Fragment key={mi}>
-            {/* Notes in this measure — flex nowrap so measure is atomic */}
-            <div style={{
-              display: 'flex',
-              flexWrap: 'nowrap',
-              alignItems: 'flex-start',
-              position: 'relative',
-            }}>
-              {measure.notes.map(({ note, noteIndex }, idxInMeasure) => {
-                const isActive = isPlaybackLine && playbackNoteIdx === noteIndex;
-                const isSelected = isNoteSelected(noteIndex);
-                const noteCollabs = collabsAtNote(noteIndex);
+        {measures.map((measure, mi) => {
+          const lastNoteItem = measure.notes[measure.notes.length - 1];
+          const lastNoteIdx = lastNoteItem ? lastNoteItem.noteIndex : -1;
+          const barPos = lastNoteIdx + 1;
 
-                const prevNote = idxInMeasure > 0 ? measure.notes[idxInMeasure - 1].note : null;
-                const nextNote = idxInMeasure < measure.notes.length - 1 ? measure.notes[idxInMeasure + 1].note : null;
+          const manualBarIdx = line.barPositions ? line.barPositions.indexOf(barPos) : -1;
+          const manualBar = manualBarIdx >= 0 ? line.barTypes[manualBarIdx] : null;
 
-                return (
-                  <div key={note.id} style={{ position: 'relative', width: 'fit-content', minWidth: cellWidth, flexShrink: 0 }}>
-                    {/* Collaborator cursors */}
-                    {noteCollabs.map((c) => (
-                      <span
-                        key={c.userId}
-                        style={{
-                          position: 'absolute',
-                          top: -20,
-                          left: '50%',
-                          transform: 'translateX(-50%)',
-                          fontSize: 8,
-                          fontWeight: 700,
-                          color: '#fff',
-                          background: c.color,
-                          padding: '1px 4px',
-                          borderRadius: 4,
-                          whiteSpace: 'nowrap',
-                          zIndex: 10,
-                          pointerEvents: 'none',
-                          boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+          const barType = measure.isOverflow
+            ? 'warning'
+            : manualBar?.type ?? (measure.endBarType ?? (measure.isComplete || mi === measures.length - 1 ? 'single' : 'single'));
+
+          const isBarSelected = selection?.lineId === line.id && selection?.barPosition === barPos;
+
+          return (
+            <React.Fragment key={mi}>
+              {/* Notes in this measure — flex nowrap so measure is atomic */}
+              <div style={{
+                display: 'flex',
+                flexWrap: 'nowrap',
+                alignItems: 'flex-start',
+                position: 'relative',
+              }}>
+                {measure.notes.map(({ note, noteIndex }, idxInMeasure) => {
+                  const isActive = isPlaybackLine && playbackNoteIdx === noteIndex;
+                  const isSelected = isNoteSelected(noteIndex);
+                  const noteCollabs = collabsAtNote(noteIndex);
+
+                  const prevNote = idxInMeasure > 0 ? measure.notes[idxInMeasure - 1].note : null;
+                  const nextNote = idxInMeasure < measure.notes.length - 1 ? measure.notes[idxInMeasure + 1].note : null;
+
+                  return (
+                    <div key={note.id} style={{ position: 'relative', width: 'fit-content', minWidth: cellWidth, flexShrink: 0 }}>
+                      {/* Collaborator cursors */}
+                      {noteCollabs.map((c) => (
+                        <span
+                          key={c.userId}
+                          style={{
+                            position: 'absolute',
+                            top: -20,
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            fontSize: 8,
+                            fontWeight: 700,
+                            color: '#fff',
+                            background: c.color,
+                            padding: '1px 4px',
+                            borderRadius: 4,
+                            whiteSpace: 'nowrap',
+                            zIndex: 10,
+                            pointerEvents: 'none',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                          }}
+                        >
+                          {c.name}
+                        </span>
+                      ))}
+
+                      <NoteCell
+                        note={note}
+                        noteIndex={noteIndex}
+                        lineId={line.id}
+                        cellWidth={cellWidth}
+                        isActive={isActive}
+                        isSelected={isSelected}
+                        prevNote={prevNote}
+                        nextNote={nextNote}
+                        onClick={(e) => {
+                          if (e.shiftKey && selection?.lineId === line.id) {
+                            setSelection({
+                              lineId: line.id,
+                              noteIndex: selection.noteIndex,
+                              noteIndexEnd: noteIndex,
+                            });
+                          } else {
+                            setSelection({ lineId: line.id, noteIndex });
+                          }
                         }}
-                      >
-                        {c.name}
-                      </span>
-                    ))}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
 
-                    <NoteCell
-                      note={note}
-                      noteIndex={noteIndex}
-                      lineId={line.id}
-                      cellWidth={cellWidth}
-                      isActive={isActive}
-                      isSelected={isSelected}
-                      prevNote={prevNote}
-                      nextNote={nextNote}
-                      onClick={(e) => {
-                        if (e.shiftKey && selection?.lineId === line.id) {
-                          setSelection({
-                            lineId: line.id,
-                            noteIndex: selection.noteIndex,
-                            noteIndexEnd: noteIndex,
-                          });
-                        } else {
-                          setSelection({ lineId: line.id, noteIndex });
-                        }
-                      }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Bar line after measure */}
-            {measure.isOverflow ? (
-              <BarLineCell type="warning" warning tooltip={getWarningTooltip(measure)} />
-            ) : measure.endBarType ? (
-              <BarLineCell type={measure.endBarType} />
-            ) : measure.isComplete ? (
-              <BarLineCell type="single" />
-            ) : null}
-          </React.Fragment>
-        ))}
+              {/* Bar line after measure */}
+              <BarLineCell
+                type={barType}
+                warning={measure.isOverflow}
+                tooltip={getWarningTooltip(measure)}
+                isSelected={isBarSelected}
+                repeatCount={manualBar?.repeatCount}
+                repeatLabel={manualBar?.repeatLabel}
+                onClick={() => {
+                  useEditorStore.getState().insertBarLine(line.id, barPos, manualBar?.type ?? 'single');
+                  setSelection({ lineId: line.id, barPosition: barPos });
+                }}
+              />
+            </React.Fragment>
+          );
+        })}
 
         {/* Empty line placeholder */}
         {line.notes.length === 0 && (

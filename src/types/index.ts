@@ -19,6 +19,7 @@ export interface NoteAngka {
   isDot: boolean;           // not titik (.) — elemen tersendiri, memperpanjang durasi not sebelumnya
   overlines: 0 | 1 | 2;    // garis atas: 0=quarter, 1=half (2 ketukan), 2=whole (4 ketukan)
   dotted: boolean;          // titik samping = 1.5x durasi
+  accidental?: 'sharp' | 'flat' | 'natural'; // coret kanan / (sharp: +1 semitone), coret kiri \ (flat: -1 semitone)
   tied: boolean;            // not disambung ke not berikutnya
   slurred: boolean;         // legato slur
   staccato: boolean;
@@ -32,6 +33,8 @@ export interface NoteAngka {
 
 export interface BarLine {
   type: 'single' | 'double' | 'repeat-start' | 'repeat-end' | 'final';
+  repeatCount?: number;     // jumlah pengulangan jika repeat zone (misal 1 = diulang 1x)
+  repeatLabel?: string;     // keterangan zona repeat, misal "Reff", "Chorus", "Intro"
 }
 
 export interface StructuralSymbol {
@@ -42,6 +45,7 @@ export interface StructuralSymbol {
 export interface LyricLine {
   id: string;
   notes: NoteAngka[];
+  startBarType?: BarLine['type']; // bar type di awal baris (default: 'single')
   barPositions: number[];    // index before which a bar line appears
   barTypes: BarLine[];       // matching bar types for each position
   label?: string;            // e.g., "Intro", "Verse 1", "Chorus"
@@ -90,8 +94,10 @@ export interface SongVersion {
 
 export interface EditorSelection {
   lineId: string;
-  noteIndex: number;
+  noteIndex?: number;
   noteIndexEnd?: number;
+  barPosition?: number;      // index where bar line sits
+  isStartBar?: boolean;      // true if start-of-line bar line is selected
 }
 
 export interface EditorState {

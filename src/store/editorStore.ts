@@ -69,6 +69,8 @@ interface EditorStore {
 
   // Actions — Bar lines
   insertBarLine: (lineId: string, position: number, type?: BarLine['type']) => void;
+  updateBarLineMeta: (lineId: string, position: number, meta: Partial<BarLine>) => void;
+  updateStartBarType: (lineId: string, type: BarLine['type']) => void;
   removeBarLine: (lineId: string, position: number) => void;
 
   // Actions — Playback
@@ -274,21 +276,29 @@ export const useEditorStore = create<EditorStore>()(
         if (line) {
           const idx = line.barPositions.indexOf(position);
           if (idx >= 0) {
-            // Already exists at position
             if (line.barTypes[idx]?.type === type) {
-              // Same type, remove it (toggle off)
+              // Same type, remove it
               line.barPositions.splice(idx, 1);
               line.barTypes.splice(idx, 1);
             } else {
-              // Different type, update its type
-              line.barTypes[idx] = { type };
+              // Different type, update type
+              line.barTypes[idx].type = type;
+              if (type === 'repeat-start' || type === 'repeat-end') {
+                if (!line.barTypes[idx].repeatCount) {
+                  line.barTypes[idx].repeatCount = 1;
+                }
+              }
             }
           } else {
             // Insert new bar line
+            const defaultBar: BarLine = { type };
+            if (type === 'repeat-start' || type === 'repeat-end') {
+              defaultBar.repeatCount = 1;
+            }
             line.barPositions.push(position);
-            line.barTypes.push({ type });
+            line.barTypes.push(defaultBar);
 
-            // Sort both arrays in sync using zipped elements
+            // Sort both arrays in sync
             const zipped = line.barPositions.map((pos, i) => ({
               pos,
               t: line.barTypes[i],
@@ -297,6 +307,48 @@ export const useEditorStore = create<EditorStore>()(
             line.barPositions = zipped.map((z) => z.pos);
             line.barTypes = zipped.map((z) => z.t);
           }
+
+          // Auto-pair repeat-end if repeat-start was added and no repeat-end exists in song
+          if (type === 'repeat-start') {
+            const hasRepeatEnd = state.song.content.lines.some((l) =>
+              l.barTypes.some((bt) => bt.type === 'repeat-end')
+            );
+            if (!hasRepeatEnd) {
+              const endPos = line.notes.length;
+              if (!line.barPositions.includes(endPos)) {
+                line.barPositions.push(endPos);
+                line.barTypes.push({ type: 'repeat-end', repeatCount: 1 });
+                const zipped = line.barPositions.map((pos, i) => ({ pos, t: line.barTypes[i] }));
+                zipped.sort((a, b) => a.pos - b.pos);
+                line.barPositions = zipped.map((z) => z.pos);
+                line.barTypes = zipped.map((z) => z.t);
+              }
+            }
+          }
+
+          state.isDirty = true;
+        }
+      }),
+
+    updateBarLineMeta: (lineId: string, position: number, meta: Partial<BarLine>) =>
+      set((state) => {
+        if (!state.song) return;
+        const line = state.song.content.lines.find((l) => l.id === lineId);
+        if (line) {
+          const idx = line.barPositions.indexOf(position);
+          if (idx >= 0) {
+            Object.assign(line.barTypes[idx], meta);
+            state.isDirty = true;
+          }
+        }
+      }),
+
+    updateStartBarType: (lineId: string, type: BarLine['type']) =>
+      set((state) => {
+        if (!state.song) return;
+        const line = state.song.content.lines.find((l) => l.id === lineId);
+        if (line) {
+          line.startBarType = type;
           state.isDirty = true;
         }
       }),

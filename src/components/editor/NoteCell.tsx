@@ -210,8 +210,6 @@ export function NoteCell({
           </div>
         ) : null
       )}
-
-      {/* ── Layer 5: Note digit / Dot ──────────────────────────────────────── */}
       {layer(LAYER_H.note,
         note.isDot ? (
           // Not titik — elemen tersendiri, tampil sebagai '.'
@@ -226,6 +224,7 @@ export function NoteCell({
             color: 'currentColor',
             opacity: 0.95,
             paddingBottom: 6,
+            position: 'relative',
           }}>
             <span>.</span>
           </div>
@@ -240,6 +239,7 @@ export function NoteCell({
             lineHeight: 1,
             color: 'currentColor',
             paddingBottom: 6,
+            position: 'relative',
           }}>
             <span>{note.isRest ? '0' : note.pitch}</span>
             {note.dotted && (
@@ -251,6 +251,42 @@ export function NoteCell({
                 .
               </span>
             )}
+
+            {/* Accidental Coret Kanan / (Sharp: Naik 1/2 nada) */}
+            {note.accidental === 'sharp' && !note.isRest && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '25%',
+                  left: '15%',
+                  width: '70%',
+                  height: 2.2,
+                  background: 'currentColor',
+                  transform: 'rotate(-45deg)',
+                  transformOrigin: 'center',
+                  pointerEvents: 'none',
+                  borderRadius: 1,
+                }}
+              />
+            )}
+
+            {/* Accidental Coret Kiri \ (Flat: Turun 1/2 nada) */}
+            {note.accidental === 'flat' && !note.isRest && (
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '25%',
+                  left: '15%',
+                  width: '70%',
+                  height: 2.2,
+                  background: 'currentColor',
+                  transform: 'rotate(45deg)',
+                  transformOrigin: 'center',
+                  pointerEvents: 'none',
+                  borderRadius: 1,
+                }}
+              />
+            )}
           </div>
         )
       )}
@@ -258,7 +294,7 @@ export function NoteCell({
       {/* ── Layer 6: Octave-low dot ─────────────────────────────────────────── */}
       {layer(LAYER_H.octaveLow,
         note.octave === 'low' && !note.isRest && !note.isDot
-          ? <span style={{ display: 'block', width: 4, height: 4, borderRadius: '50%', background: 'currentColor' }} />
+          ? <span style={{ display: 'block', width: 4.5, height: 4.5, borderRadius: '50%', background: 'currentColor' }} />
           : null
       )}
 
@@ -325,21 +361,96 @@ interface BarLineCellProps {
   type: string;
   warning?: boolean;
   tooltip?: string;
+  isSelected?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
+  repeatCount?: number;
+  repeatLabel?: string;
 }
 
 /**
  * BarLineCell — matches the exact same layer structure as NoteCell
  * so the bar line symbol is always at the same vertical position as note digits.
  */
-export function BarLineCell({ type, warning = false, tooltip }: BarLineCellProps) {
+export function BarLineCell({
+  type,
+  warning = false,
+  tooltip,
+  isSelected = false,
+  onClick,
+  repeatCount,
+  repeatLabel,
+}: BarLineCellProps) {
   const symbol = BAR_SYMBOLS[type] ?? '|';
   const color = warning
     ? '#f87171'
-    : type === 'double'
+    : isSelected
+    ? '#818cf8'
+    : type === 'double' || type === 'repeat-start' || type === 'repeat-end'
     ? 'var(--music-accent)'
     : 'var(--music-barline)';
 
   return (
+    <div
+      style={{
+        width: warning ? 18 : Math.max(18, isSelected ? 22 : 18),
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        userSelect: 'none',
+        pointerEvents: 'auto',
+        cursor: warning ? 'help' : 'pointer',
+        background: isSelected ? 'rgba(99,102,241,0.22)' : 'transparent',
+        borderRadius: 4,
+        outline: isSelected ? '2px solid #818cf8' : 'none',
+        outlineOffset: 1,
+        transition: 'all 0.15s ease',
+        position: 'relative',
+      }}
+      onClick={onClick}
+      title={tooltip || (warning ? 'Birama tidak lengkap / kelebihan ketukan' : 'Klik untuk ubah jenis garis birama')}
+    >
+      {/* Layer 1: Repeat label or count if present */}
+      <div style={{
+        height: LAYER_H.chord,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 9,
+        fontWeight: 800,
+        color: 'var(--music-accent)',
+        whiteSpace: 'nowrap',
+      }}>
+        {repeatLabel ? repeatLabel : (type === 'repeat-start' || type === 'repeat-end') && repeatCount ? `${repeatCount}x` : ''}
+      </div>
+
+      <div style={{ height: LAYER_H.accent }} />
+      <div style={{ height: LAYER_H.octaveHigh }} />
+      <div style={{ height: LAYER_H.overlines }} />
+
+      {/* Layer 5: Bar symbol */}
+      <div style={{
+        height: LAYER_H.note,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <span style={{
+          fontSize: 22,
+          fontWeight: 900,
+          lineHeight: 1,
+          color,
+          animation: warning ? 'pulse 1.5s infinite' : undefined,
+        }}>
+          {symbol}
+        </span>
+      </div>
+
+      <div style={{ height: LAYER_H.octaveLow }} />
+      <div style={{ height: LAYER_H.lyric }} />
+    </div>
+  );
+}n (
     <div
       style={{
         width: warning ? 18 : 16,

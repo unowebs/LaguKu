@@ -56,6 +56,9 @@ export function noteToMidi(note: NoteAngka, key: MusicalKey): number | null {
   if (note.octave === 'high') midi += 12;
   if (note.octave === 'low') midi -= 12;
 
+  if (note.accidental === 'sharp') midi += 1;
+  if (note.accidental === 'flat') midi -= 1;
+
   return midi;
 }
 

@@ -102,21 +102,27 @@ export function usePlayer() {
   }, [instrumentName]);
 
   // Flatten all notes into a sequence
-  // Flatten all notes into a sequence
+  // Flatten all notes into a sequence with repeat loop support
   const buildSequence = useCallback(() => {
     if (!song) return [];
 
-    const seq: Array<{
+    const bpm = song.tempo;
+
+    // 1. Build flat list of note items across all lines with bar metadata
+    interface FlatNoteItem {
       lineIdx: number;
       noteIdx: number;
       note: NoteAngka;
-      time: number;
+      dur: number;
       playDuration: number;
       skipSound: boolean;
-    }> = [];
+      startBarType?: string;
+      endBarType?: string;
+      repeatCount?: number;
+      repeatLabel?: string;
+    }
 
-    let currentTime = 0;
-    const bpm = song.tempo;
+    const flatItems: FlatNoteItem[] = [];
 
     song.content.lines.forEach((line, lineIdx) => {
       const notes = line.notes;
@@ -125,26 +131,21 @@ export function usePlayer() {
 
       for (let i = 0; i < notes.length; i++) {
         const note = notes[i];
-        const dur = getDurationInSeconds(note, bpm);
-        playDurationMap.set(i, dur);
+        playDurationMap.set(i, getDurationInSeconds(note, bpm));
       }
 
-      // Resolve dot chains & tie chains
       for (let i = 0; i < notes.length; i++) {
         if (skipSoundMap.get(i)) continue;
-
         const note = notes[i];
         let chainDuration = playDurationMap.get(i) || getDurationInSeconds(note, bpm);
         let nextIdx = i + 1;
 
-        // 1. Accumulate duration for consecutive dot notes (.) following this note
         while (nextIdx < notes.length && notes[nextIdx].isDot) {
           chainDuration += getDurationInSeconds(notes[nextIdx], bpm);
           skipSoundMap.set(nextIdx, true);
           nextIdx++;
         }
 
-        // 2. Accumulate duration for tie chains
         if (note.tied && !note.isRest && !note.isDot && note.pitch !== '0') {
           while (nextIdx < notes.length) {
             const nextNote = notes[nextIdx];
@@ -166,23 +167,102 @@ export function usePlayer() {
       }
 
       notes.forEach((note, noteIdx) => {
-        const time = currentTime;
         const dur = getDurationInSeconds(note, bpm);
         const playDuration = playDurationMap.get(noteIdx) || dur;
         const skipSound = skipSoundMap.get(noteIdx) || false;
 
-        seq.push({
+        let startBarType: string | undefined;
+        let endBarType: string | undefined;
+        let repeatCount: number | undefined;
+        let repeatLabel: string | undefined;
+
+        if (noteIdx === 0 && line.startBarType) {
+          startBarType = line.startBarType;
+        }
+
+        if (line.barPositions) {
+          const barIdx = line.barPositions.indexOf(noteIdx + 1);
+          if (barIdx >= 0) {
+            const bar = line.barTypes[barIdx];
+            endBarType = bar?.type;
+            repeatCount = bar?.repeatCount;
+            repeatLabel = bar?.repeatLabel;
+          }
+          const startBarIdx = line.barPositions.indexOf(noteIdx);
+          if (startBarIdx >= 0) {
+            const bar = line.barTypes[startBarIdx];
+            if (bar?.type === 'repeat-start') {
+              startBarType = 'repeat-start';
+            }
+          }
+        }
+
+        flatItems.push({
           lineIdx,
           noteIdx,
           note,
-          time,
+          dur,
           playDuration,
           skipSound,
+          startBarType,
+          endBarType,
+          repeatCount,
+          repeatLabel,
         });
-
-        currentTime += dur;
       });
     });
+
+    if (flatItems.length === 0) return [];
+
+    // 2. Unroll repeat loops into timed sequence
+    const seq: Array<{
+      lineIdx: number;
+      noteIdx: number;
+      note: NoteAngka;
+      time: number;
+      playDuration: number;
+      skipSound: boolean;
+    }> = [];
+
+    let currentTime = 0;
+    let itemIdx = 0;
+    const repeatZoneExecuted = new Map<number, number>(); // endItemIdx -> currentRepeats
+    let activeRepeatStartIdx = 0;
+    const maxSafetySteps = flatItems.length * 10;
+    let steps = 0;
+
+    while (itemIdx < flatItems.length && steps < maxSafetySteps) {
+      steps++;
+      const item = flatItems[itemIdx];
+
+      if (item.startBarType === 'repeat-start') {
+        activeRepeatStartIdx = itemIdx;
+      }
+
+      seq.push({
+        lineIdx: item.lineIdx,
+        noteIdx: item.noteIdx,
+        note: item.note,
+        time: currentTime,
+        playDuration: item.playDuration,
+        skipSound: item.skipSound,
+      });
+
+      currentTime += item.dur;
+
+      if (item.endBarType === 'repeat-end') {
+        const targetRepeats = item.repeatCount ?? 1;
+        const currentRepeats = repeatZoneExecuted.get(itemIdx) || 0;
+
+        if (currentRepeats < targetRepeats) {
+          repeatZoneExecuted.set(itemIdx, currentRepeats + 1);
+          itemIdx = activeRepeatStartIdx; // Loop back to repeat-start!
+          continue;
+        }
+      }
+
+      itemIdx++;
+    }
 
     return seq;
   }, [song]);
