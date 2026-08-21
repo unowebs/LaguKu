@@ -222,8 +222,10 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
           const startNoteIdx = firstNoteItem ? firstNoteItem.noteIndex : 0;
           const endNoteIdx = lastNoteItem ? lastNoteItem.noteIndex + 1 : 0;
 
-          // Start bar
-          const startManualBarIdx = line.barPositions ? line.barPositions.indexOf(startNoteIdx) : -1;
+          // Start bar (only matches bar lines with side === 'start')
+          const startManualBarIdx = line.barPositions
+            ? line.barPositions.findIndex((pos, i) => pos === startNoteIdx && line.barTypes[i]?.side === 'start')
+            : -1;
           const startManualBar = startManualBarIdx >= 0 ? line.barTypes[startManualBarIdx] : null;
           const startBarType = mi === 0 ? (line.startBarType ?? 'single') : (startManualBar?.type ?? 'single');
           const isStartBarSelected = selection?.lineId === line.id && (
@@ -232,8 +234,10 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
               : selection?.barPosition === startNoteIdx && (selection?.barSide === 'start' || !selection?.barSide)
           );
 
-          // End bar
-          const endManualBarIdx = line.barPositions ? line.barPositions.indexOf(endNoteIdx) : -1;
+          // End bar (matches bar lines with side === 'end' or undefined)
+          const endManualBarIdx = line.barPositions
+            ? line.barPositions.findIndex((pos, i) => pos === endNoteIdx && (line.barTypes[i]?.side ?? 'end') === 'end')
+            : -1;
           const endManualBar = endManualBarIdx >= 0 ? line.barTypes[endManualBarIdx] : null;
           const endBarType = measure.isOverflow ? 'warning' : (endManualBar?.type ?? (measure.endBarType ?? 'single'));
           const isEndBarSelected = selection?.lineId === line.id && (
