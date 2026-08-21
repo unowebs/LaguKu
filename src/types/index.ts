@@ -20,6 +20,9 @@ export interface NoteAngka {
   overlines: 0 | 1 | 2;    // garis atas: 0=quarter, 1=half (2 ketukan), 2=whole (4 ketukan)
   dotted: boolean;          // titik samping = 1.5x durasi
   accidental?: 'sharp' | 'flat' | 'natural'; // coret kanan / (sharp: +1 semitone), coret kiri \ (flat: -1 semitone)
+  repeatAfter?: 'repeat-start' | 'repeat-end'; // simbol repeat bebas yang dipasang setelah not ini
+  repeatCount?: number;     // jumlah pengulangan (default 1)
+  repeatLabel?: string;     // keterangan repeat (misal "Chorus", "Reff")
   tied: boolean;            // not disambung ke not berikutnya
   slurred: boolean;         // legato slur
   staccato: boolean;

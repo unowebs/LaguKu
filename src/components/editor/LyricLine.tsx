@@ -251,54 +251,70 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
                   const nextNote = idxInMeasure < measure.notes.length - 1 ? measure.notes[idxInMeasure + 1].note : null;
 
                   return (
-                    <div key={note.id} style={{ position: 'relative', width: 'fit-content', minWidth: cellWidth, flexShrink: 0 }}>
-                      {/* Collaborator cursors */}
-                      {noteCollabs.map((c) => (
-                        <span
-                          key={c.userId}
-                          style={{
-                            position: 'absolute',
-                            top: -20,
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            fontSize: 8,
-                            fontWeight: 700,
-                            color: '#fff',
-                            background: c.color,
-                            padding: '1px 4px',
-                            borderRadius: 4,
-                            whiteSpace: 'nowrap',
-                            zIndex: 10,
-                            pointerEvents: 'none',
-                            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-                          }}
-                        >
-                          {c.name}
-                        </span>
-                      ))}
+                    <React.Fragment key={note.id}>
+                      <div style={{ position: 'relative', width: 'fit-content', minWidth: cellWidth, flexShrink: 0 }}>
+                        {/* Collaborator cursors */}
+                        {noteCollabs.map((c) => (
+                          <span
+                            key={c.userId}
+                            style={{
+                              position: 'absolute',
+                              top: -20,
+                              left: '50%',
+                              transform: 'translateX(-50%)',
+                              fontSize: 8,
+                              fontWeight: 700,
+                              color: '#fff',
+                              background: c.color,
+                              padding: '1px 4px',
+                              borderRadius: 4,
+                              whiteSpace: 'nowrap',
+                              zIndex: 10,
+                              pointerEvents: 'none',
+                              boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                            }}
+                          >
+                            {c.name}
+                          </span>
+                        ))}
 
-                      <NoteCell
-                        note={note}
-                        noteIndex={noteIndex}
-                        lineId={line.id}
-                        cellWidth={cellWidth}
-                        isActive={isActive}
-                        isSelected={isSelected}
-                        prevNote={prevNote}
-                        nextNote={nextNote}
-                        onClick={(e) => {
-                          if (e.shiftKey && selection?.lineId === line.id) {
-                            setSelection({
-                              lineId: line.id,
-                              noteIndex: selection.noteIndex,
-                              noteIndexEnd: noteIndex,
-                            });
-                          } else {
+                        <NoteCell
+                          note={note}
+                          noteIndex={noteIndex}
+                          lineId={line.id}
+                          cellWidth={cellWidth}
+                          isActive={isActive}
+                          isSelected={isSelected}
+                          prevNote={prevNote}
+                          nextNote={nextNote}
+                          onClick={(e) => {
+                            if (e.shiftKey && selection?.lineId === line.id && selection?.noteIndex !== undefined) {
+                              setSelection({
+                                lineId: line.id,
+                                noteIndex: selection.noteIndex,
+                                noteIndexEnd: noteIndex,
+                              });
+                            } else {
+                              setSelection({ lineId: line.id, noteIndex });
+                            }
+                          }}
+                        />
+                      </div>
+
+                      {/* Independent Repeat Symbol (𝄆 or 𝄇) attached after this note */}
+                      {note.repeatAfter && (
+                        <BarLineCell
+                          type={note.repeatAfter}
+                          repeatCount={note.repeatCount}
+                          repeatLabel={note.repeatLabel}
+                          isSelected={isSelected}
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelection({ lineId: line.id, noteIndex });
-                          }
-                        }}
-                      />
-                    </div>
+                          }}
+                        />
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </div>

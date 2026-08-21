@@ -1267,10 +1267,22 @@ function SymbolsTab({
     { label: '·', title: 'Staccato', active: !!selectedNote?.staccato, action: () => onToggleProp('staccato'), requiresSelection: true },
     { label: '>', title: 'Accent', active: !!selectedNote?.accent, action: () => onToggleProp('accent'), requiresSelection: true },
     { label: '𝄐', title: 'Fermata', active: !!selectedNote?.fermata, action: () => onToggleProp('fermata'), requiresSelection: true },
+    {
+      label: '𝄆',
+      title: 'Repeat Start (||:) Bebas di Sebelah Not',
+      active: selectedNote?.repeatAfter === 'repeat-start',
+      action: () => onApply({ repeatAfter: selectedNote?.repeatAfter === 'repeat-start' ? undefined : 'repeat-start', repeatCount: selectedNote?.repeatCount ?? 1 }),
+      requiresSelection: true,
+    },
+    {
+      label: '𝄇',
+      title: 'Repeat End (:||) Bebas di Sebelah Not',
+      active: selectedNote?.repeatAfter === 'repeat-end',
+      action: () => onApply({ repeatAfter: selectedNote?.repeatAfter === 'repeat-end' ? undefined : 'repeat-end', repeatCount: selectedNote?.repeatCount ?? 1 }),
+      requiresSelection: true,
+    },
     { label: '|', title: 'Bar Line (Garis Birama)', active: false, action: () => onBarLine('single'), requiresSelection: true },
     { label: '‖', title: 'Double Bar', active: false, action: () => onBarLine('double'), requiresSelection: true },
-    { label: '𝄆', title: 'Repeat Start (||:)', active: false, action: () => onBarLine('repeat-start'), requiresSelection: true },
-    { label: '𝄇', title: 'Repeat End (:||)', active: false, action: () => onBarLine('repeat-end'), requiresSelection: true },
     { label: 'cresc.', title: 'Crescendo', active: selectedNote?.dynamics === 'crescendo', action: () => onToggleDynamics('crescendo'), requiresSelection: true },
     { label: 'dim.', title: 'Diminuendo', active: selectedNote?.dynamics === 'diminuendo', action: () => onToggleDynamics('diminuendo'), requiresSelection: true },
   ];
@@ -1362,6 +1374,30 @@ function SymbolsTab({
               </button>
             );
           })}
+
+          {/* If selected note has repeatAfter symbol, show settings controls */}
+          {hasSelection && selectedNote?.repeatAfter && (
+            <div className="flex items-center gap-2 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/30 ml-1">
+              <span className="text-[11px] font-semibold text-indigo-400">Repeat ({selectedNote.repeatAfter === 'repeat-start' ? '𝄆' : '𝄇'}):</span>
+              <span className="text-[11px] text-muted-foreground">Ulang:</span>
+              <select
+                className="toolbar-select text-xs py-0.5 px-1"
+                value={selectedNote.repeatCount ?? 1}
+                onChange={(e) => onApply({ repeatCount: parseInt(e.target.value) })}
+              >
+                {[1, 2, 3, 4, 5].map((c) => (
+                  <option key={c} value={c}>{c}x</option>
+                ))}
+              </select>
+              <input
+                type="text"
+                placeholder="Keterangan…"
+                defaultValue={selectedNote.repeatLabel ?? ''}
+                className="w-24 px-1.5 py-0.5 text-xs rounded bg-surface-2 border border-music-border text-music-text"
+                onBlur={(e) => onApply({ repeatLabel: e.target.value.trim() || undefined })}
+              />
+            </div>
+          )}
           {!hasSelection && (
             <span className="text-[10px] ml-2" style={{ color: 'var(--music-muted)' }}>
               Klik not atau garis birama untuk pilih

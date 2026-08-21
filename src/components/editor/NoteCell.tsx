@@ -257,15 +257,16 @@ export function NoteCell({
               <span
                 style={{
                   position: 'absolute',
-                  top: '25%',
-                  left: '15%',
-                  width: '70%',
+                  top: '40%',
+                  left: '50%',
+                  width: '80%',
                   height: 2.2,
                   background: 'currentColor',
-                  transform: 'rotate(-45deg)',
+                  transform: 'translate(-50%, -50%) rotate(-45deg)',
                   transformOrigin: 'center',
                   pointerEvents: 'none',
                   borderRadius: 1,
+                  zIndex: 2,
                 }}
               />
             )}
@@ -275,15 +276,16 @@ export function NoteCell({
               <span
                 style={{
                   position: 'absolute',
-                  top: '25%',
-                  left: '15%',
-                  width: '70%',
+                  top: '40%',
+                  left: '50%',
+                  width: '80%',
                   height: 2.2,
                   background: 'currentColor',
-                  transform: 'rotate(45deg)',
+                  transform: 'translate(-50%, -50%) rotate(45deg)',
                   transformOrigin: 'center',
                   pointerEvents: 'none',
                   borderRadius: 1,
+                  zIndex: 2,
                 }}
               />
             )}

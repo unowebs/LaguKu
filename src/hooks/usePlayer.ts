@@ -235,8 +235,8 @@ export function usePlayer() {
       steps++;
       const item = flatItems[itemIdx];
 
-      if (item.startBarType === 'repeat-start') {
-        activeRepeatStartIdx = itemIdx;
+      if (item.startBarType === 'repeat-start' || item.note.repeatAfter === 'repeat-start') {
+        activeRepeatStartIdx = item.note.repeatAfter === 'repeat-start' ? itemIdx + 1 : itemIdx;
       }
 
       seq.push({
@@ -250,8 +250,8 @@ export function usePlayer() {
 
       currentTime += item.dur;
 
-      if (item.endBarType === 'repeat-end') {
-        const targetRepeats = item.repeatCount ?? 1;
+      if (item.endBarType === 'repeat-end' || item.note.repeatAfter === 'repeat-end') {
+        const targetRepeats = item.note.repeatAfter === 'repeat-end' ? (item.note.repeatCount ?? 1) : (item.repeatCount ?? 1);
         const currentRepeats = repeatZoneExecuted.get(itemIdx) || 0;
 
         if (currentRepeats < targetRepeats) {
