@@ -68,10 +68,10 @@ interface EditorStore {
   updateSyllable: (lineId: string, noteIndex: number, syllable: string) => void;
 
   // Actions — Bar lines
-  insertBarLine: (lineId: string, position: number, type?: BarLine['type']) => void;
-  updateBarLineMeta: (lineId: string, position: number, meta: Partial<BarLine>) => void;
+  insertBarLine: (lineId: string, position: number, type?: BarLine['type'], side?: 'start' | 'end') => void;
+  updateBarLineMeta: (lineId: string, position: number, meta: Partial<BarLine>, side?: 'start' | 'end') => void;
   updateStartBarType: (lineId: string, type: BarLine['type']) => void;
-  removeBarLine: (lineId: string, position: number) => void;
+  removeBarLine: (lineId: string, position: number, side?: 'start' | 'end') => void;
 
   // Actions — Playback
   setPlaying: (playing: boolean) => void;
@@ -269,15 +269,15 @@ export const useEditorStore = create<EditorStore>()(
         }
       }),
 
-    insertBarLine: (lineId: string, position: number, type: BarLine['type'] = 'single') =>
+    insertBarLine: (lineId: string, position: number, type: BarLine['type'] = 'single', side: 'start' | 'end' = 'end') =>
       set((state) => {
         if (!state.song) return;
         const line = state.song.content.lines.find((l) => l.id === lineId);
         if (line) {
-          const idx = line.barPositions.indexOf(position);
+          const idx = line.barPositions.findIndex((pos, i) => pos === position && (line.barTypes[i]?.side ?? 'end') === side);
           if (idx >= 0) {
             if (line.barTypes[idx]?.type === type) {
-              // Same type, remove it
+              // Same type & side, remove it
               line.barPositions.splice(idx, 1);
               line.barTypes.splice(idx, 1);
             } else {
@@ -291,7 +291,7 @@ export const useEditorStore = create<EditorStore>()(
             }
           } else {
             // Insert new bar line
-            const defaultBar: BarLine = { type };
+            const defaultBar: BarLine = { type, side };
             if (type === 'repeat-start' || type === 'repeat-end') {
               defaultBar.repeatCount = 1;
             }
@@ -317,7 +317,7 @@ export const useEditorStore = create<EditorStore>()(
               const endPos = line.notes.length;
               if (!line.barPositions.includes(endPos)) {
                 line.barPositions.push(endPos);
-                line.barTypes.push({ type: 'repeat-end', repeatCount: 1 });
+                line.barTypes.push({ type: 'repeat-end', repeatCount: 1, side: 'end' });
                 const zipped = line.barPositions.map((pos, i) => ({ pos, t: line.barTypes[i] }));
                 zipped.sort((a, b) => a.pos - b.pos);
                 line.barPositions = zipped.map((z) => z.pos);
@@ -330,12 +330,12 @@ export const useEditorStore = create<EditorStore>()(
         }
       }),
 
-    updateBarLineMeta: (lineId: string, position: number, meta: Partial<BarLine>) =>
+    updateBarLineMeta: (lineId: string, position: number, meta: Partial<BarLine>, side: 'start' | 'end' = 'end') =>
       set((state) => {
         if (!state.song) return;
         const line = state.song.content.lines.find((l) => l.id === lineId);
         if (line) {
-          const idx = line.barPositions.indexOf(position);
+          const idx = line.barPositions.findIndex((pos, i) => pos === position && (line.barTypes[i]?.side ?? 'end') === side);
           if (idx >= 0) {
             Object.assign(line.barTypes[idx], meta);
             state.isDirty = true;
@@ -353,12 +353,12 @@ export const useEditorStore = create<EditorStore>()(
         }
       }),
 
-    removeBarLine: (lineId, position) =>
+    removeBarLine: (lineId: string, position: number, side: 'start' | 'end' = 'end') =>
       set((state) => {
         if (!state.song) return;
         const line = state.song.content.lines.find((l) => l.id === lineId);
         if (line) {
-          const idx = line.barPositions.indexOf(position);
+          const idx = line.barPositions.findIndex((pos, i) => pos === position && (line.barTypes[i]?.side ?? 'end') === side);
           if (idx >= 0) {
             line.barPositions.splice(idx, 1);
             line.barTypes.splice(idx, 1);

@@ -1283,7 +1283,8 @@ function SymbolsTab({
   const { selection, song, updateBarLineMeta, updateStartBarType, removeBarLine } = useEditorStore();
 
   const selectedLine = selection ? song?.content.lines.find((l) => l.id === selection.lineId) : null;
-  const barIdx = selectedLine && selection?.barPosition !== undefined ? selectedLine.barPositions.indexOf(selection.barPosition) : -1;
+  const side = selection?.barSide ?? 'end';
+  const barIdx = selectedLine && selection?.barPosition !== undefined ? selectedLine.barPositions.findIndex((pos, i) => pos === selection.barPosition && (selectedLine.barTypes[i]?.side ?? 'end') === side) : -1;
   const currentBar = barIdx >= 0 && selectedLine ? selectedLine.barTypes[barIdx] : null;
 
   const isBarSelected = !!selection && (selection.barPosition !== undefined || !!selection.isStartBar);
@@ -1335,8 +1336,9 @@ function SymbolsTab({
                 if (selection.isStartBar) {
                   updateStartBarType(selection.lineId, t as any);
                 } else if (selection.barPosition !== undefined) {
-                  useEditorStore.getState().insertBarLine(selection.lineId, selection.barPosition, t as any);
-                  useEditorStore.getState().setSelection({ lineId: selection.lineId, barPosition: selection.barPosition, barSide: selection.barSide });
+                  const currentSide = selection.barSide ?? 'end';
+                  useEditorStore.getState().insertBarLine(selection.lineId, selection.barPosition, t as any, currentSide);
+                  useEditorStore.getState().setSelection({ lineId: selection.lineId, barPosition: selection.barPosition, barSide: currentSide });
                 }
               }}
             >
@@ -1352,7 +1354,7 @@ function SymbolsTab({
               <select
                 className="toolbar-select text-xs"
                 value={currentBar.repeatCount ?? 1}
-                onChange={(e) => updateBarLineMeta(selection.lineId, selection.barPosition!, { repeatCount: parseInt(e.target.value) })}
+                onChange={(e) => updateBarLineMeta(selection.lineId, selection.barPosition!, { repeatCount: parseInt(e.target.value) }, selection.barSide ?? 'end')}
               >
                 {[1, 2, 3, 4, 5].map((c) => (
                   <option key={c} value={c}>{c}x</option>

@@ -38,6 +38,7 @@ export interface BarLine {
   type: 'single' | 'double' | 'repeat-start' | 'repeat-end' | 'final';
   repeatCount?: number;     // jumlah pengulangan jika repeat zone (misal 1 = diulang 1x)
   repeatLabel?: string;     // keterangan zona repeat, misal "Reff", "Chorus", "Intro"
+  side?: 'start' | 'end';   // 'end' by default (akhir birama), 'start' (awal birama)
 }
 
 export interface StructuralSymbol {
