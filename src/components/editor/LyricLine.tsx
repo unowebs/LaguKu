@@ -211,37 +211,46 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
         rowGap: 8,
       }}>
 
-        {/* | start-of-line bar line (clickable & customizable) */}
-        <BarLineCell
-          type={line.startBarType ?? 'single'}
-          isSelected={selection?.lineId === line.id && !!selection?.isStartBar}
-          onClick={() => setSelection({ lineId: line.id, isStartBar: true })}
-        />
-
         {/* Measures */}
         {measures.map((measure, mi) => {
+          const firstNoteItem = measure.notes[0];
           const lastNoteItem = measure.notes[measure.notes.length - 1];
-          const lastNoteIdx = lastNoteItem ? lastNoteItem.noteIndex : -1;
-          const barPos = lastNoteIdx + 1;
+          const startNoteIdx = firstNoteItem ? firstNoteItem.noteIndex : 0;
+          const endNoteIdx = lastNoteItem ? lastNoteItem.noteIndex + 1 : 0;
 
-          const manualBarIdx = line.barPositions ? line.barPositions.indexOf(barPos) : -1;
-          const manualBar = manualBarIdx >= 0 ? line.barTypes[manualBarIdx] : null;
+          const startManualBarIdx = line.barPositions ? line.barPositions.indexOf(startNoteIdx) : -1;
+          const startManualBar = startManualBarIdx >= 0 ? line.barTypes[startManualBarIdx] : null;
 
-          const barType = measure.isOverflow
-            ? 'warning'
-            : manualBar?.type ?? (measure.endBarType ?? (measure.isComplete || mi === measures.length - 1 ? 'single' : 'single'));
+          const startBarType = mi === 0 ? (line.startBarType ?? 'single') : (startManualBar?.type ?? 'single');
+          const isStartBarSelected = selection?.lineId === line.id && (mi === 0 && selection?.isStartBar ? true : selection?.barPosition === startNoteIdx);
 
-          const isBarSelected = selection?.lineId === line.id && selection?.barPosition === barPos;
+          const isLastMeasure = mi === measures.length - 1;
 
           return (
             <React.Fragment key={mi}>
-              {/* Notes in this measure — flex nowrap so measure is atomic */}
+              {/* Notes in this measure — flex nowrap with start bar line so measure & bar line stay together */}
               <div style={{
                 display: 'flex',
                 flexWrap: 'nowrap',
                 alignItems: 'flex-start',
                 position: 'relative',
               }}>
+                {/* Bar line before measure */}
+                <BarLineCell
+                  type={startBarType}
+                  isSelected={isStartBarSelected}
+                  repeatCount={startManualBar?.repeatCount}
+                  repeatLabel={startManualBar?.repeatLabel}
+                  onClick={() => {
+                    if (mi === 0) {
+                      setSelection({ lineId: line.id, isStartBar: true });
+                    } else {
+                      useEditorStore.getState().insertBarLine(line.id, startNoteIdx, startManualBar?.type ?? 'single');
+                      setSelection({ lineId: line.id, barPosition: startNoteIdx });
+                    }
+                  }}
+                />
+
                 {measure.notes.map(({ note, noteIndex }, idxInMeasure) => {
                   const isActive = isPlaybackLine && playbackNoteIdx === noteIndex;
                   const isSelected = isNoteSelected(noteIndex);
@@ -319,19 +328,19 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
                 })}
               </div>
 
-              {/* Bar line after measure */}
-              <BarLineCell
-                type={barType}
-                warning={measure.isOverflow}
-                tooltip={getWarningTooltip(measure)}
-                isSelected={isBarSelected}
-                repeatCount={manualBar?.repeatCount}
-                repeatLabel={manualBar?.repeatLabel}
-                onClick={() => {
-                  useEditorStore.getState().insertBarLine(line.id, barPos, manualBar?.type ?? 'single');
-                  setSelection({ lineId: line.id, barPosition: barPos });
-                }}
-              />
+              {/* End bar line after last measure */}
+              {isLastMeasure && (
+                <BarLineCell
+                  type={measure.isOverflow ? 'warning' : (measure.endBarType ?? 'single')}
+                  warning={measure.isOverflow}
+                  tooltip={getWarningTooltip(measure)}
+                  isSelected={selection?.lineId === line.id && selection?.barPosition === endNoteIdx}
+                  onClick={() => {
+                    useEditorStore.getState().insertBarLine(line.id, endNoteIdx, 'single');
+                    setSelection({ lineId: line.id, barPosition: endNoteIdx });
+                  }}
+                />
+              )}
             </React.Fragment>
           );
         })}
