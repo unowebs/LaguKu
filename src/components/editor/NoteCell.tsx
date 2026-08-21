@@ -241,45 +241,45 @@ export function NoteCell({
             paddingBottom: 6,
             position: 'relative',
           }}>
-            {/* Accidental Coret Kiri / (Sharp: Naik 1/2 nada) — tampil di tengah angka */}
-            {note.accidental === 'sharp' && !note.isRest && (
-              <span style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -55%)',
-                fontSize: noteFontSize * 1.1,
-                fontWeight: 300,
-                lineHeight: 1,
-                fontFamily: "'JetBrains Mono', 'Inter', 'Courier New', monospace",
-                pointerEvents: 'none',
-                zIndex: 3,
-                letterSpacing: '-0.05em',
-              }}>
-                /
-              </span>
-            )}
+            {/* Digit span sebagai anchor untuk garis miring */}
+            <span style={{ position: 'relative', display: 'inline-block' }}>
+              {note.isRest ? '0' : note.pitch}
 
-            {/* Accidental Coret Kiri \ (Flat: Turun 1/2 nada) — tampil di tengah angka */}
-            {note.accidental === 'flat' && !note.isRest && (
-              <span style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -55%)',
-                fontSize: noteFontSize * 1.1,
-                fontWeight: 300,
-                lineHeight: 1,
-                fontFamily: "'JetBrains Mono', 'Inter', 'Courier New', monospace",
-                pointerEvents: 'none',
-                zIndex: 3,
-                letterSpacing: '-0.05em',
-              }}>
-                \
-              </span>
-            )}
+              {/* Accidental Sharp (/) — garis miring kanan, melewati tengah digit */}
+              {note.accidental === 'sharp' && !note.isRest && (
+                <span style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: `${noteFontSize * 1.3}px`,
+                  height: '2.5px',
+                  background: 'currentColor',
+                  transform: 'translate(-50%, -50%) rotate(-45deg)',
+                  transformOrigin: 'center',
+                  pointerEvents: 'none',
+                  borderRadius: '1.5px',
+                  zIndex: 3,
+                }} />
+              )}
 
-            <span>{note.isRest ? '0' : note.pitch}</span>
+              {/* Accidental Flat (\) — garis miring kiri, melewati tengah digit */}
+              {note.accidental === 'flat' && !note.isRest && (
+                <span style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: `${noteFontSize * 1.3}px`,
+                  height: '2.5px',
+                  background: 'currentColor',
+                  transform: 'translate(-50%, -50%) rotate(45deg)',
+                  transformOrigin: 'center',
+                  pointerEvents: 'none',
+                  borderRadius: '1.5px',
+                  zIndex: 3,
+                }} />
+              )}
+            </span>
+
             {note.dotted && (
               <span style={{
                 fontSize: noteFontSize * 0.75,
