@@ -204,40 +204,70 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
       )}
 
       {/* ── Note grid row ──────────────────────────────────────────────────── */}
+      {/* paddingLeft: 18 compensates for the -18 marginLeft on measures 2+,   */}
+      {/* so that when a measure wraps to a new row it aligns with row 1.       */}
       <div style={{
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'flex-start',
         rowGap: 8,
+        paddingLeft: 0,
       }}>
 
         {/* Measures */}
         {measures.map((measure, mi) => {
+          const firstNoteItem = measure.notes[0];
           const lastNoteItem = measure.notes[measure.notes.length - 1];
+          const startNoteIdx = firstNoteItem ? firstNoteItem.noteIndex : 0;
           const endNoteIdx = lastNoteItem ? lastNoteItem.noteIndex + 1 : 0;
 
+          // Start bar
+          const startManualBarIdx = line.barPositions ? line.barPositions.indexOf(startNoteIdx) : -1;
+          const startManualBar = startManualBarIdx >= 0 ? line.barTypes[startManualBarIdx] : null;
+          const startBarType = mi === 0 ? (line.startBarType ?? 'single') : (startManualBar?.type ?? 'single');
+          const isStartBarSelected = selection?.lineId === line.id && (
+            mi === 0 ? !!selection?.isStartBar : selection?.barPosition === startNoteIdx
+          );
+
+          // End bar
           const endManualBarIdx = line.barPositions ? line.barPositions.indexOf(endNoteIdx) : -1;
           const endManualBar = endManualBarIdx >= 0 ? line.barTypes[endManualBarIdx] : null;
           const endBarType = measure.isOverflow ? 'warning' : (endManualBar?.type ?? (measure.endBarType ?? 'single'));
           const isEndBarSelected = selection?.lineId === line.id && selection?.barPosition === endNoteIdx;
 
+          // BAR_WIDTH must match BarLineCell width (18px).
+          // Measures 2+ are shifted left by BAR_WIDTH so their start bar overlaps
+          // the preceding measure's end bar when on the same visual row.
+          // When a measure wraps to a new row, the start bar is naturally visible.
+          const BAR_WIDTH = 18;
+
           return (
             <React.Fragment key={mi}>
-              {/* Measure flex block — wraps atomically. The end bar line is always included so wrapped rows always end with | */}
+              {/* Atomic measure block: [start-bar][notes][end-bar]
+                  marginLeft: -BAR_WIDTH overlaps adjacent bar lines on same row.
+                  On wrap, the start bar appears at the start of the new visual row. */}
               <div style={{
                 display: 'flex',
                 flexWrap: 'nowrap',
                 alignItems: 'flex-start',
                 position: 'relative',
+                marginLeft: mi > 0 ? -BAR_WIDTH : 0,
               }}>
-                {/* Start bar line — only for the first measure of the line */}
-                {mi === 0 && (
-                  <BarLineCell
-                    type={line.startBarType ?? 'single'}
-                    isSelected={selection?.lineId === line.id && !!selection?.isStartBar}
-                    onClick={() => setSelection({ lineId: line.id, isStartBar: true })}
-                  />
-                )}
+                {/* Start bar line */}
+                <BarLineCell
+                  type={startBarType}
+                  isSelected={isStartBarSelected}
+                  repeatCount={mi > 0 ? startManualBar?.repeatCount : undefined}
+                  repeatLabel={mi > 0 ? startManualBar?.repeatLabel : undefined}
+                  onClick={() => {
+                    if (mi === 0) {
+                      setSelection({ lineId: line.id, isStartBar: true });
+                    } else {
+                      useEditorStore.getState().insertBarLine(line.id, startNoteIdx, startManualBar?.type ?? 'single');
+                      setSelection({ lineId: line.id, barPosition: startNoteIdx });
+                    }
+                  }}
+                />
 
                 {/* Notes in measure */}
                 {measure.notes.map(({ note, noteIndex }, idxInMeasure) => {
@@ -316,7 +346,7 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
                   );
                 })}
 
-                {/* End bar line — always rendered so every wrapped row ends with | */}
+                {/* End bar line — always rendered so every row (including wrapped) ends with | */}
                 <BarLineCell
                   type={endBarType}
                   warning={measure.isOverflow}
