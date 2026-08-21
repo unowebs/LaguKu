@@ -188,7 +188,7 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
   return (
     <div
       className="song-line group relative"
-      style={{ marginBottom: 20 }}
+      style={{ marginBottom: 32 }}
     >
       {/* Line label */}
       {line.label && (
@@ -213,15 +213,8 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
 
         {/* Measures */}
         {measures.map((measure, mi) => {
-          const firstNoteItem = measure.notes[0];
           const lastNoteItem = measure.notes[measure.notes.length - 1];
-          const startNoteIdx = firstNoteItem ? firstNoteItem.noteIndex : 0;
           const endNoteIdx = lastNoteItem ? lastNoteItem.noteIndex + 1 : 0;
-
-          const startManualBarIdx = line.barPositions ? line.barPositions.indexOf(startNoteIdx) : -1;
-          const startManualBar = startManualBarIdx >= 0 ? line.barTypes[startManualBarIdx] : null;
-          const startBarType = mi === 0 ? (line.startBarType ?? 'single') : (startManualBar?.type ?? 'single');
-          const isStartBarSelected = selection?.lineId === line.id && (mi === 0 && selection?.isStartBar ? true : selection?.barPosition === startNoteIdx);
 
           const endManualBarIdx = line.barPositions ? line.barPositions.indexOf(endNoteIdx) : -1;
           const endManualBar = endManualBarIdx >= 0 ? line.barTypes[endManualBarIdx] : null;
@@ -230,30 +223,21 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
 
           return (
             <React.Fragment key={mi}>
-              {/* Measure flex block — wraps atomically. Starts with start bar line, ends with end bar line */}
+              {/* Measure flex block — wraps atomically. The end bar line is always included so wrapped rows always end with | */}
               <div style={{
                 display: 'flex',
                 flexWrap: 'nowrap',
                 alignItems: 'flex-start',
                 position: 'relative',
-                // Overlap start bar line with preceding measure's end bar line on the same row
-                marginLeft: mi > 0 ? -18 : 0,
               }}>
-                {/* Bar line before measure notes */}
-                <BarLineCell
-                  type={startBarType}
-                  isSelected={isStartBarSelected}
-                  repeatCount={startManualBar?.repeatCount}
-                  repeatLabel={startManualBar?.repeatLabel}
-                  onClick={() => {
-                    if (mi === 0) {
-                      setSelection({ lineId: line.id, isStartBar: true });
-                    } else {
-                      useEditorStore.getState().insertBarLine(line.id, startNoteIdx, startManualBar?.type ?? 'single');
-                      setSelection({ lineId: line.id, barPosition: startNoteIdx });
-                    }
-                  }}
-                />
+                {/* Start bar line — only for the first measure of the line */}
+                {mi === 0 && (
+                  <BarLineCell
+                    type={line.startBarType ?? 'single'}
+                    isSelected={selection?.lineId === line.id && !!selection?.isStartBar}
+                    onClick={() => setSelection({ lineId: line.id, isStartBar: true })}
+                  />
+                )}
 
                 {/* Notes in measure */}
                 {measure.notes.map(({ note, noteIndex }, idxInMeasure) => {
@@ -332,7 +316,7 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
                   );
                 })}
 
-                {/* Bar line after measure notes */}
+                {/* End bar line — always rendered so every wrapped row ends with | */}
                 <BarLineCell
                   type={endBarType}
                   warning={measure.isOverflow}

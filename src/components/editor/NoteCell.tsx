@@ -385,16 +385,12 @@ export function BarLineCell({
   const symbol = BAR_SYMBOLS[type] ?? '|';
   const color = warning
     ? '#f87171'
-    : isSelected
-    ? '#818cf8'
-    : type === 'double' || type === 'repeat-start' || type === 'repeat-end'
-    ? 'var(--music-accent)'
     : 'var(--music-barline)';
 
   return (
     <div
       style={{
-        width: warning ? 18 : Math.max(18, isSelected ? 22 : 18),
+        width: 18,
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
@@ -402,9 +398,9 @@ export function BarLineCell({
         userSelect: 'none',
         pointerEvents: 'auto',
         cursor: warning ? 'help' : 'pointer',
-        background: isSelected ? 'rgba(99,102,241,0.22)' : 'transparent',
+        background: isSelected ? 'rgba(255,255,255,0.08)' : 'transparent',
         borderRadius: 4,
-        outline: isSelected ? '2px solid #818cf8' : 'none',
+        outline: isSelected ? '2px solid rgba(255,255,255,0.3)' : 'none',
         outlineOffset: 1,
         transition: 'all 0.15s ease',
         position: 'relative',
