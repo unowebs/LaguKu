@@ -177,6 +177,7 @@ export function NoteCell({
             justifyContent: 'flex-start',
             paddingTop: 1,
             gap: 2,
+            overflow: 'visible',
           }}>
             {/* Garis 1/2 ketuk (Atas) */}
             <div style={{
@@ -184,9 +185,12 @@ export function NoteCell({
               height: 2,
               background: 'currentColor',
               flexShrink: 0,
-              marginLeft: !hasLeft1 ? '42%' : 0,
-              marginRight: !hasRight1 ? '42%' : 0,
-              borderRadius: 1,
+              marginLeft: !hasLeft1 ? '42%' : '-2px',
+              marginRight: !hasRight1 ? '42%' : '-2px',
+              borderTopLeftRadius: !hasLeft1 ? 1 : 0,
+              borderBottomLeftRadius: !hasLeft1 ? 1 : 0,
+              borderTopRightRadius: !hasRight1 ? 1 : 0,
+              borderBottomRightRadius: !hasRight1 ? 1 : 0,
             }} />
             {/* Garis 1/4 ketuk (Bawah garis 1/2 ketuk) */}
             {note.overlines >= 2 && (
@@ -195,9 +199,12 @@ export function NoteCell({
                 height: 2,
                 background: 'currentColor',
                 flexShrink: 0,
-                marginLeft: !hasLeft2 ? '42%' : 0,
-                marginRight: !hasRight2 ? '42%' : 0,
-                borderRadius: 1,
+                marginLeft: !hasLeft2 ? '42%' : '-2px',
+                marginRight: !hasRight2 ? '42%' : '-2px',
+                borderTopLeftRadius: !hasLeft2 ? 1 : 0,
+                borderBottomLeftRadius: !hasLeft2 ? 1 : 0,
+                borderTopRightRadius: !hasRight2 ? 1 : 0,
+                borderBottomRightRadius: !hasRight2 ? 1 : 0,
               }} />
             )}
           </div>
