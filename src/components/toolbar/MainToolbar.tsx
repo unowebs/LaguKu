@@ -1398,33 +1398,6 @@ function SymbolsTab({
     </div>
   );
 }
-          <input
-            type="text"
-            placeholder="Am, G7…"
-            defaultValue={selectedNote?.chord ?? ''}
-            className="w-16 px-2 py-0.5 text-xs rounded"
-            style={{
-              background: 'var(--music-surface-2)',
-              border: '1px solid var(--music-border)',
-              color: 'var(--music-chord)',
-              outline: 'none',
-              fontWeight: 700,
-            }}
-            onBlur={(e) => {
-              const val = e.target.value.trim();
-              onApply({ chord: val || undefined } as Partial<NoteAngka>);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                (e.target as HTMLInputElement).blur();
-              }
-            }}
-          />
-        </>
-      )}
-    </div>
-  );
-}
 
 // ——— Structure Tab ———
 function StructureTab({

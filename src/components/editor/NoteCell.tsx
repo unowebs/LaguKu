@@ -450,49 +450,6 @@ export function BarLineCell({
       <div style={{ height: LAYER_H.lyric }} />
     </div>
   );
-}n (
-    <div
-      style={{
-        width: warning ? 18 : 16,
-        flexShrink: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        userSelect: 'none',
-        pointerEvents: warning ? 'auto' : 'none',
-        cursor: warning ? 'help' : 'default',
-      }}
-      title={tooltip || (warning ? 'Birama tidak lengkap / kelebihan ketukan' : undefined)}
-    >
-      {/* Mirror layers 1-3 (empty) so bar symbol aligns with note digit */}
-      <div style={{ height: LAYER_H.chord }} />
-      <div style={{ height: LAYER_H.accent }} />
-      <div style={{ height: LAYER_H.octaveHigh }} />
-      <div style={{ height: LAYER_H.overlines }} />
-
-      {/* The bar symbol, aligned with the note digit layer */}
-      <div style={{
-        height: LAYER_H.note,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        <span style={{
-          fontSize: 20,
-          fontWeight: 700,
-          lineHeight: 1,
-          color,
-          animation: warning ? 'pulse 1.5s infinite' : undefined,
-        }}>
-          {symbol}
-        </span>
-      </div>
-
-      {/* Mirror layers 6-7 (empty) for consistent height */}
-      <div style={{ height: LAYER_H.octaveLow }} />
-      <div style={{ height: LAYER_H.lyric }} />
-    </div>
-  );
 }
 
 // ─── SyllableCell ─────────────────────────────────────────────────────────────
