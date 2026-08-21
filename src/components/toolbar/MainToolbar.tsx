@@ -144,8 +144,13 @@ export function MainToolbar() {
 
   const addBarAtSelection = (type: 'single' | 'double' | 'repeat-start' | 'repeat-end' | 'final' = 'single') => {
     if (!song || !selection) return;
-    const pos = selection.barPosition !== undefined ? selection.barPosition : (selection.noteIndex !== undefined ? selection.noteIndex : 0);
-    insertBarLine(selection.lineId, pos, type);
+    if (selection.isStartBar) {
+      updateStartBarType(selection.lineId, type);
+    } else {
+      const pos = selection.barPosition !== undefined ? selection.barPosition : (selection.noteIndex !== undefined ? selection.noteIndex + 1 : 0);
+      insertBarLine(selection.lineId, pos, type);
+      setSelection({ lineId: selection.lineId, barPosition: pos });
+    }
   };
 
   const getSelectedNote = (): NoteAngka | null => {
