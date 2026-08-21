@@ -224,10 +224,13 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
               alignItems: 'flex-start',
               position: 'relative',
             }}>
-              {measure.notes.map(({ note, noteIndex }) => {
+              {measure.notes.map(({ note, noteIndex }, idxInMeasure) => {
                 const isActive = isPlaybackLine && playbackNoteIdx === noteIndex;
                 const isSelected = isNoteSelected(noteIndex);
                 const noteCollabs = collabsAtNote(noteIndex);
+
+                const prevNote = idxInMeasure > 0 ? measure.notes[idxInMeasure - 1].note : null;
+                const nextNote = idxInMeasure < measure.notes.length - 1 ? measure.notes[idxInMeasure + 1].note : null;
 
                 return (
                   <div key={note.id} style={{ position: 'relative', width: 'fit-content', minWidth: cellWidth, flexShrink: 0 }}>
@@ -263,6 +266,8 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
                       cellWidth={cellWidth}
                       isActive={isActive}
                       isSelected={isSelected}
+                      prevNote={prevNote}
+                      nextNote={nextNote}
                       onClick={(e) => {
                         if (e.shiftKey && selection?.lineId === line.id) {
                           setSelection({

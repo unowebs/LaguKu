@@ -32,13 +32,13 @@ export const LAYER_H = {
   overlines:  10,
   note:       26,
   octaveLow:   8,
-  lyric:      22,
+  lyric:      24,
 } as const;
 
 export const CELL_TOTAL_HEIGHT =
   LAYER_H.chord + LAYER_H.accent + LAYER_H.octaveHigh + LAYER_H.overlines +
   LAYER_H.note  + LAYER_H.octaveLow + LAYER_H.lyric;
-// = 106px
+// = 108px
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -50,6 +50,8 @@ interface NoteCellProps {
   cellWidth: number;
   isActive?: boolean;
   isSelected?: boolean;
+  prevNote?: NoteAngka | null;
+  nextNote?: NoteAngka | null;
   onClick?: (e: React.MouseEvent) => void;
 }
 
@@ -62,6 +64,8 @@ export function NoteCell({
   cellWidth,
   isActive = false,
   isSelected = false,
+  prevNote = null,
+  nextNote = null,
   onClick,
 }: NoteCellProps) {
   const noteColor = isActive
@@ -71,14 +75,14 @@ export function NoteCell({
     : 'var(--music-note)';
 
   const bgColor = isActive
-    ? 'rgba(250,204,21,0.10)'
+    ? 'rgba(250,204,21,0.12)'
     : isSelected
-    ? 'rgba(99,102,241,0.15)'
+    ? 'rgba(99,102,241,0.18)'
     : 'transparent';
 
-  // Font size scales with cellWidth (min 12, max 22)
-  const noteFontSize = Math.max(12, Math.min(22, cellWidth * 0.48));
-  const lyricFontSize = Math.max(9, Math.min(13, cellWidth * 0.30));
+  // Font size scales with cellWidth
+  const noteFontSize = Math.max(13, Math.min(23, cellWidth * 0.50));
+  const lyricFontSize = Math.max(11, Math.min(16, cellWidth * 0.36));
   const chordFontSize = Math.max(8, Math.min(11, cellWidth * 0.26));
 
   const layer = (height: number, children: React.ReactNode, extra?: React.CSSProperties) => (
@@ -99,6 +103,15 @@ export function NoteCell({
       {children}
     </div>
   );
+
+  // Determine overline neighbor connectivity
+  // Level 1 (top line): half note (1/2 ketuk)
+  const hasLeft1 = prevNote ? prevNote.overlines >= 1 || prevNote.duration === 'eighth' || prevNote.duration === 'sixteenth' : false;
+  const hasRight1 = nextNote ? nextNote.overlines >= 1 || nextNote.duration === 'eighth' || nextNote.duration === 'sixteenth' : false;
+
+  // Level 2 (bottom line): sixteenth note (1/4 ketuk)
+  const hasLeft2 = prevNote ? prevNote.overlines >= 2 || prevNote.duration === 'sixteenth' : false;
+  const hasRight2 = nextNote ? nextNote.overlines >= 2 || nextNote.duration === 'sixteenth' : false;
 
   return (
     <div
@@ -124,9 +137,9 @@ export function NoteCell({
         note.chord ? (
           <span style={{
             fontSize: chordFontSize,
-            fontWeight: 700,
+            fontWeight: 800,
             color: 'var(--music-chord)',
-            letterSpacing: '-0.03em',
+            letterSpacing: '-0.02em',
             lineHeight: 1,
             whiteSpace: 'nowrap',
           }}>
@@ -138,22 +151,22 @@ export function NoteCell({
       {/* ── Layer 2: Accent / Fermata / Staccato ───────────────────────────── */}
       {layer(LAYER_H.accent,
         note.fermata
-          ? <span style={{ fontSize: 13, color: 'var(--music-accent)' }}>𝄐</span>
+          ? <span style={{ fontSize: 13, color: 'var(--music-accent)', fontWeight: 800 }}>𝄐</span>
           : note.accent
-          ? <span style={{ fontSize: 12, fontWeight: 900, color: 'var(--music-accent)' }}>&gt;</span>
+          ? <span style={{ fontSize: 13, fontWeight: 900, color: 'var(--music-accent)' }}>&gt;</span>
           : note.staccato
-          ? <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--music-accent)' }}>·</span>
+          ? <span style={{ fontSize: 16, fontWeight: 900, color: 'var(--music-accent)' }}>·</span>
           : null
       )}
 
       {/* ── Layer 3: Octave-high dot ────────────────────────────────────────── */}
       {layer(LAYER_H.octaveHigh,
         note.octave === 'high' && !note.isRest
-          ? <span style={{ display: 'block', width: 4, height: 4, borderRadius: '50%', background: 'currentColor' }} />
+          ? <span style={{ display: 'block', width: 4.5, height: 4.5, borderRadius: '50%', background: 'currentColor' }} />
           : null
       )}
 
-      {/* ── Layer 4: Overlines (1/2 ketuk di atas, 1/4 ketuk di bawahnya) ── */}
+      {/* ── Layer 4: Overlines (garis di atas not) ─────────────────────────── */}
       {layer(LAYER_H.overlines,
         note.overlines > 0 ? (
           <div style={{
@@ -168,19 +181,23 @@ export function NoteCell({
             {/* Garis 1/2 ketuk (Atas) */}
             <div style={{
               display: 'block',
-              width: '100%',
-              height: 1.5,
+              height: 2,
               background: 'currentColor',
               flexShrink: 0,
+              marginLeft: !hasLeft1 ? '20%' : 0,
+              marginRight: !hasRight1 ? '20%' : 0,
+              borderRadius: 1,
             }} />
             {/* Garis 1/4 ketuk (Bawah garis 1/2 ketuk) */}
             {note.overlines >= 2 && (
               <div style={{
                 display: 'block',
-                width: '100%',
-                height: 1.5,
+                height: 2,
                 background: 'currentColor',
                 flexShrink: 0,
+                marginLeft: !hasLeft2 ? '20%' : 0,
+                marginRight: !hasRight2 ? '20%' : 0,
+                borderRadius: 1,
               }} />
             )}
           </div>
@@ -196,11 +213,11 @@ export function NoteCell({
             alignItems: 'center',
             justifyContent: 'center',
             fontFamily: "'JetBrains Mono', 'Inter', 'Courier New', monospace",
-            fontWeight: 700,
-            fontSize: noteFontSize * 1.1,
+            fontWeight: 900,
+            fontSize: noteFontSize * 1.15,
             lineHeight: 1,
             color: 'currentColor',
-            opacity: 0.85,
+            opacity: 0.95,
             paddingBottom: 6,
           }}>
             <span>.</span>
@@ -211,7 +228,7 @@ export function NoteCell({
             alignItems: 'center',
             justifyContent: 'center',
             fontFamily: "'JetBrains Mono', 'Inter', 'Courier New', monospace",
-            fontWeight: 700,
+            fontWeight: 800,
             fontSize: noteFontSize,
             lineHeight: 1,
             color: 'currentColor',
@@ -220,7 +237,8 @@ export function NoteCell({
             <span>{note.isRest ? '0' : note.pitch}</span>
             {note.dotted && (
               <span style={{
-                fontSize: noteFontSize * 0.7,
+                fontSize: noteFontSize * 0.75,
+                fontWeight: 900,
                 marginLeft: 1,
               }}>
                 .
@@ -383,8 +401,8 @@ function SyllableCell({
   return (
     <div
       style={{
-        width: '92%',
-        height: 20,
+        width: '95%',
+        height: 22,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -406,7 +424,7 @@ function SyllableCell({
         contentEditable
         suppressContentEditableWarning
         style={{
-          fontSize: hasText || isFocused ? fontSize : Math.max(9, fontSize - 1),
+          fontSize: hasText || isFocused ? fontSize : Math.max(10, fontSize - 1),
           color: isFocused
             ? '#ffffff'
             : isActive
@@ -414,12 +432,12 @@ function SyllableCell({
             : hasText
             ? 'var(--music-lyric)'
             : '#818cf8',
-          fontWeight: isFocused || isActive ? 600 : 400,
+          fontWeight: isFocused || isActive || hasText ? 700 : 500,
           fontStyle: !hasText && !isFocused ? 'italic' : 'normal',
           outline: 'none',
           minWidth: 10,
           textAlign: 'center',
-          lineHeight: 1,
+          lineHeight: 1.1,
           whiteSpace: 'nowrap',
           width: '100%',
         }}

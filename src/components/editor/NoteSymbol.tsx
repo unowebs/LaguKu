@@ -8,6 +8,8 @@ interface NoteSymbolProps {
   note: NoteAngka;
   isActive?: boolean;
   isSelected?: boolean;
+  prevNote?: NoteAngka | null;
+  nextNote?: NoteAngka | null;
   onClick?: () => void;
   className?: string;
 }
@@ -16,9 +18,17 @@ export function NoteSymbol({
   note,
   isActive = false,
   isSelected = false,
+  prevNote = null,
+  nextNote = null,
   onClick,
   className,
 }: NoteSymbolProps) {
+  const hasLeft1 = prevNote ? prevNote.overlines >= 1 || prevNote.duration === 'eighth' || prevNote.duration === 'sixteenth' : false;
+  const hasRight1 = nextNote ? nextNote.overlines >= 1 || nextNote.duration === 'eighth' || nextNote.duration === 'sixteenth' : false;
+
+  const hasLeft2 = prevNote ? prevNote.overlines >= 2 || prevNote.duration === 'sixteenth' : false;
+  const hasRight2 = nextNote ? nextNote.overlines >= 2 || nextNote.duration === 'sixteenth' : false;
+
   return (
     <div
       className={cn(
@@ -32,40 +42,52 @@ export function NoteSymbol({
     >
       {/* Dynamics indicator */}
       {note.dynamics && (
-        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[7px] font-bold uppercase tracking-wider text-music-accent whitespace-nowrap">
+        <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[7px] font-extrabold uppercase tracking-wider text-music-accent whitespace-nowrap">
           {note.dynamics === 'crescendo' ? 'cresc.' : 'dim.'}
         </span>
       )}
 
       {/* Fermata */}
       {note.fermata && (
-        <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] leading-none text-music-accent">
+        <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[10px] leading-none font-bold text-music-accent">
           𝄐
         </span>
       )}
 
       {/* Accent */}
       {note.accent && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] leading-none font-bold text-music-accent">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] leading-none font-black text-music-accent">
           &gt;
         </span>
       )}
 
       {/* Note body */}
-      <div className="relative flex flex-col items-center">
+      <div className="relative flex flex-col items-center w-full">
         {/* Octave high dot — dot above */}
         {note.octave === 'high' && !note.isRest && !note.isDot && (
-          <span className="block w-1 h-1 rounded-full bg-current mb-[1px]" />
+          <span className="block w-1.5 h-1.5 rounded-full bg-current mb-[1px]" />
         )}
 
-        {/* Overlines (garis atas — 1/2 ketuk di atas, 1/4 ketuk di bawahnya) */}
+        {/* Overlines (garis atas) */}
         {note.overlines > 0 && (
-          <div className="flex flex-col items-center w-full mb-[3px] gap-[2px]">
+          <div className="flex flex-col w-full mb-[3px] gap-[2px]">
             {/* Garis 1/2 ketuk (Atas) */}
-            <span className="block h-[1.5px] bg-current w-full" style={{ minWidth: '14px' }} />
+            <span
+              className="block h-[2px] bg-current rounded-sm"
+              style={{
+                marginLeft: !hasLeft1 ? '20%' : 0,
+                marginRight: !hasRight1 ? '20%' : 0,
+              }}
+            />
             {/* Garis 1/4 ketuk (Bawah garis 1/2 ketuk) */}
             {note.overlines >= 2 && (
-              <span className="block h-[1.5px] bg-current w-full" style={{ minWidth: '14px' }} />
+              <span
+                className="block h-[2px] bg-current rounded-sm"
+                style={{
+                  marginLeft: !hasLeft2 ? '20%' : 0,
+                  marginRight: !hasRight2 ? '20%' : 0,
+                }}
+              />
             )}
           </div>
         )}
@@ -73,9 +95,9 @@ export function NoteSymbol({
         {/* Main note pitch / Dot */}
         <span
           className={cn(
-            'note-digit font-mono font-bold leading-none',
+            'note-digit font-mono font-black leading-none',
             note.isRest && 'text-music-muted',
-            note.isDot && 'opacity-85',
+            note.isDot && 'opacity-95 font-black',
             isActive && 'text-yellow-300',
             isSelected && 'text-blue-400',
             !isActive && !isSelected && 'text-music-note'
@@ -83,31 +105,31 @@ export function NoteSymbol({
         >
           {note.isDot ? '.' : note.isRest ? '0' : note.pitch}
           {!note.isDot && note.dotted && (
-            <span className="ml-[1px] text-[0.7em]">.</span>
+            <span className="ml-[1px] text-[0.75em] font-black">.</span>
           )}
         </span>
 
         {/* Staccato */}
         {!note.isDot && note.staccato && (
-          <span className="block w-1 h-1 rounded-full bg-current mt-[1px]" />
+          <span className="block w-1.5 h-1.5 rounded-full bg-current mt-[1px]" />
         )}
 
         {/* Octave low dot — dot below */}
         {note.octave === 'low' && !note.isRest && !note.isDot && (
-          <span className="block w-1 h-1 rounded-full bg-current mt-[1px]" />
+          <span className="block w-1.5 h-1.5 rounded-full bg-current mt-[1px]" />
         )}
       </div>
 
       {/* Tie indicator */}
       {note.tied && (
-        <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[8px] text-music-accent">
+        <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[8px] font-bold text-music-accent">
           ⌒
         </span>
       )}
 
       {/* Slur indicator */}
       {note.slurred && (
-        <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[8px] text-music-accent">
+        <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 text-[8px] font-bold text-music-accent">
           ⌣
         </span>
       )}

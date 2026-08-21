@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Serif:ital,wght@0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@400;700;800;900&display=swap');
 
 @import "tailwindcss";
 
@@ -12,19 +12,19 @@
   --music-surface: #1a1d27;
   --music-surface-2: #22273a;
   --music-border: rgba(255, 255, 255, 0.08);
-  --music-text: #e2e8f0;
+  --music-text: #f8fafc;
   --music-muted: #64748b;
   --music-accent: #6366f1;
   --music-accent-hover: #818cf8;
-  --music-note: #f1f5f9;
-  --music-lyric: #94a3b8;
-  --music-title: #f8fafc;
-  --music-barline: #64748b;
-  --music-highlight: rgba(234, 179, 8, 0.15);
-  --music-selection: rgba(99, 102, 241, 0.2);
+  --music-note: #ffffff;
+  --music-lyric: #cbd5e1;
+  --music-title: #ffffff;
+  --music-barline: #94a3b8;
+  --music-highlight: rgba(250, 204, 21, 0.2);
+  --music-selection: rgba(99, 102, 241, 0.25);
   --music-paper: #1e2235;
   --music-paper-line: rgba(255, 255, 255, 0.04);
-  --music-chord: #a78bfa;   /* chord label above notes */
+  --music-chord: #c084fc;   /* chord label above notes */
   --music-slur: rgba(148, 163, 184, 0.6);
 
   /* Note grid cell dimensions (overridden by zoom) */
@@ -32,7 +32,7 @@
   --note-cell-height: 112px;
 
   /* Font sizes */
-  --note-size: 1rem;
+  --note-size: 1.05rem;
   --lyric-size: 0.8rem;
 }
 
@@ -41,19 +41,19 @@
   --music-surface: #ffffff;
   --music-surface-2: #f1f5f9;
   --music-border: rgba(0, 0, 0, 0.08);
-  --music-text: #1e293b;
-  --music-muted: #94a3b8;
+  --music-text: #0f172a;
+  --music-muted: #64748b;
   --music-accent: #4f46e5;
   --music-accent-hover: #6366f1;
-  --music-note: #1e293b;
-  --music-lyric: #475569;
-  --music-title: #0f172a;
-  --music-barline: #94a3b8;
-  --music-highlight: rgba(234, 179, 8, 0.2);
-  --music-selection: rgba(79, 70, 229, 0.15);
+  --music-note: #020617;
+  --music-lyric: #1e293b;
+  --music-title: #020617;
+  --music-barline: #475569;
+  --music-highlight: rgba(234, 179, 8, 0.25);
+  --music-selection: rgba(79, 70, 229, 0.2);
   --music-paper: #ffffff;
   --music-paper-line: rgba(0, 0, 0, 0.04);
-  --music-chord: #7c3aed;
+  --music-chord: #6b21a8;
   --music-slur: rgba(71, 85, 105, 0.6);
 }
 
@@ -89,6 +89,7 @@ body {
 .note-digit {
   font-family: 'JetBrains Mono', 'Courier New', monospace;
   font-size: var(--note-size);
+  font-weight: 800;
   line-height: 1;
 }
 
