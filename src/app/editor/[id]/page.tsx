@@ -87,23 +87,25 @@ export default function EditorPage() {
 
       if (isTyping) return;
 
-      // Delete note
-      if (e.key === 'Backspace' || e.key === 'Delete') {
-        e.preventDefault();
-        deleteNote(selection.lineId, selection.noteIndex);
-        setSelection(null);
-        toast.success('Not dihapus', { id: 'delete-note' });
-        return;
-      }
+      if (selection.noteIndex !== undefined) {
+        // Delete note
+        if (e.key === 'Backspace' || e.key === 'Delete') {
+          e.preventDefault();
+          deleteNote(selection.lineId, selection.noteIndex);
+          setSelection(null);
+          toast.success('Not dihapus', { id: 'delete-note' });
+          return;
+        }
 
-      // Replace pitch (0-7 keys)
-      if (['0', '1', '2', '3', '4', '5', '6', '7'].includes(e.key)) {
-        e.preventDefault();
-        updateNote(selection.lineId, selection.noteIndex, {
-          pitch: e.key as NotePitch,
-          isRest: e.key === '0',
-        });
-        toast.success(`Not diubah ke ${e.key === '0' ? 'Rest (0)' : e.key}`, { id: 'change-note' });
+        // Replace pitch (0-7 keys)
+        if (['0', '1', '2', '3', '4', '5', '6', '7'].includes(e.key)) {
+          e.preventDefault();
+          updateNote(selection.lineId, selection.noteIndex, {
+            pitch: e.key as NotePitch,
+            isRest: e.key === '0',
+          });
+          toast.success(`Not diubah ke ${e.key === '0' ? 'Rest (0)' : e.key}`, { id: 'change-note' });
+        }
       }
     }
 

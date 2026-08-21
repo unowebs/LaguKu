@@ -147,7 +147,7 @@ export function LyricLineComponent({ line, lineIndex }: LyricLineProps) {
 
   // ── Selection helper ───────────────────────────────────────────────────────
   const isNoteSelected = (noteIndex: number) => {
-    if (!selection || selection.lineId !== line.id) return false;
+    if (!selection || selection.lineId !== line.id || selection.noteIndex === undefined) return false;
     if (selection.noteIndexEnd !== undefined) {
       return noteIndex >= Math.min(selection.noteIndex, selection.noteIndexEnd) &&
              noteIndex <= Math.max(selection.noteIndex, selection.noteIndexEnd);

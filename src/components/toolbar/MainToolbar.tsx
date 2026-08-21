@@ -81,7 +81,7 @@ export function MainToolbar() {
   // Jika tidak ada selection → append ke akhir baris terakhir
   const insertNoteAtSelection = (pitch: NotePitch) => {
     if (!song) return;
-    if (selection) {
+    if (selection && selection.noteIndex !== undefined) {
       if (insertMode === 'replace') {
         updateNote(selection.lineId, selection.noteIndex, {
           pitch,
@@ -108,7 +108,7 @@ export function MainToolbar() {
 
   const insertDotAtSelection = () => {
     if (!song) return;
-    if (selection) {
+    if (selection && selection.noteIndex !== undefined) {
       if (insertMode === 'insert-before') {
         insertDotNote(selection.lineId, selection.noteIndex);
         toast.success('Not titik (.) disisipkan sebelum not terpilih', { id: 'insert-dot' });
@@ -127,34 +127,35 @@ export function MainToolbar() {
   };
 
   const applyToSelection = (updates: Parameters<typeof updateNote>[2]) => {
-    if (!song || !selection) return;
+    if (!song || !selection || selection.noteIndex === undefined) return;
     updateNote(selection.lineId, selection.noteIndex, updates);
   };
 
   const deleteSelectedNote = () => {
-    if (!song || !selection) return;
+    if (!song || !selection || selection.noteIndex === undefined) return;
     deleteNote(selection.lineId, selection.noteIndex);
     useEditorStore.getState().setSelection(null);
   };
 
   const applyOctave = (octave: NoteOctave) => {
-    if (!song || !selection) return;
+    if (!song || !selection || selection.noteIndex === undefined) return;
     updateNote(selection.lineId, selection.noteIndex, { octave });
   };
 
   const addBarAtSelection = (type: 'single' | 'double' | 'repeat-start' | 'repeat-end' | 'final' = 'single') => {
     if (!song || !selection) return;
-    insertBarLine(selection.lineId, selection.noteIndex, type);
+    const pos = selection.barPosition !== undefined ? selection.barPosition : (selection.noteIndex !== undefined ? selection.noteIndex : 0);
+    insertBarLine(selection.lineId, pos, type);
   };
 
   const getSelectedNote = (): NoteAngka | null => {
-    if (!song || !selection) return null;
+    if (!song || !selection || selection.noteIndex === undefined) return null;
     const line = song.content.lines.find((l) => l.id === selection.lineId);
     return line?.notes[selection.noteIndex] || null;
   };
 
   const toggleSelectionProperty = (property: 'tied' | 'slurred' | 'staccato' | 'accent' | 'fermata') => {
-    if (!song || !selection) return;
+    if (!song || !selection || selection.noteIndex === undefined) return;
 
     const line = song.content.lines.find((l) => l.id === selection.lineId);
     if (!line) return;
@@ -213,7 +214,7 @@ export function MainToolbar() {
   };
 
   const toggleSelectionDynamics = (dynamics: 'crescendo' | 'diminuendo') => {
-    if (!song || !selection) return;
+    if (!song || !selection || selection.noteIndex === undefined) return;
     const note = getSelectedNote();
     if (!note) return;
     updateNote(selection.lineId, selection.noteIndex, {
@@ -919,6 +920,7 @@ export function MainToolbar() {
             onInsertDot={insertDotAtSelection}
             onOctave={applyOctave}
             onDelete={deleteSelectedNote}
+            onApply={applyToSelection}
             hasSelection={!!selection}
             insertMode={insertMode}
             onToggleInsertMode={setInsertMode}
@@ -972,6 +974,7 @@ function NotesTab({
   onInsertDot,
   onOctave,
   onDelete,
+  onApply,
   hasSelection,
   insertMode,
   onToggleInsertMode,
@@ -980,6 +983,7 @@ function NotesTab({
   onInsertDot: () => void;
   onOctave: (o: NoteOctave) => void;
   onDelete: () => void;
+  onApply: (u: Partial<NoteAngka>) => void;
   hasSelection: boolean;
   insertMode: 'replace' | 'insert-before' | 'insert-after';
   onToggleInsertMode: (m: 'replace' | 'insert-before' | 'insert-after') => void;
