@@ -1172,7 +1172,7 @@ function DurationTab({
   onSetDefault,
   hasSelection,
 }: {
-  onApply: (u: { duration?: NoteDuration; overlines?: 0 | 1 | 2; dotted?: boolean }) => void;
+  onApply: (u: Partial<NoteAngka>) => void;
   defaultDuration: NoteDuration;
   onSetDefault: (dur: NoteDuration) => void;
   hasSelection: boolean;
