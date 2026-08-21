@@ -145,7 +145,7 @@ export function MainToolbar() {
   const addBarAtSelection = (type: 'single' | 'double' | 'repeat-start' | 'repeat-end' | 'final' = 'single') => {
     if (!song || !selection) return;
     if (selection.isStartBar) {
-      updateStartBarType(selection.lineId, type);
+      useEditorStore.getState().updateStartBarType(selection.lineId, type);
     } else {
       const pos = selection.barPosition !== undefined ? selection.barPosition : (selection.noteIndex !== undefined ? selection.noteIndex + 1 : 0);
       insertBarLine(selection.lineId, pos, type);
